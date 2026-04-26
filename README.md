@@ -25,6 +25,30 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Project architecture
+
+Target architecture for Workflow Service (incidents, investigations, action plans, case lifecycle):
+
+- [Architecture blueprint](./docs/architecture.md)
+
+## Kafka incident intake and outbox
+
+- Consumer subscribes to Kafka topic `incident_topic` via Nest microservice transport.
+- Incoming messages are normalized and saved into outbox with status `pending`.
+- Scheduler (`@nestjs/schedule`) polls pending outbox messages every 30 seconds for further processing.
+
+Environment variables:
+
+- `KAFKA_BROKERS` (default: `localhost:9092`)
+- `KAFKA_CLIENT_ID` (default: `cms-workflow-service`)
+- `KAFKA_GROUP_ID` (default: `cms-workflow-service-consumer-group`)
+- `DB_HOST` (default: `localhost`)
+- `DB_PORT` (default: `5432`)
+- `DB_USER` (default: `postgres`)
+- `DB_PASSWORD` (default: `postgres`)
+- `DB_NAME` (default: `cms_workflow`)
+- `DB_SYNCHRONIZE` (default: `false`, set `true` only for local development)
+
 ## Project setup
 
 ```bash
