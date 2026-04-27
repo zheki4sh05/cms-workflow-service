@@ -10,9 +10,10 @@ import { CaseAttachmentOrmEntity } from '../../../infrastructure/case-management
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
 import { CaseCollaborationAccessService } from '../services/case-collaboration-access.service';
 import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import { UploadedFile } from '../types/uploaded-file.type';
 
 interface AddCaseAttachmentPayload {
-  file?: Express.Multer.File;
+  file?: UploadedFile;
 }
 
 @Injectable()

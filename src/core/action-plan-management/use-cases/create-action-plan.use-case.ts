@@ -73,14 +73,15 @@ export class CreateActionPlanUseCase {
       const taskTitle = task.title?.trim();
       const taskDescription = task.description?.trim();
       const priority = task.priority?.trim() as ActionPlanTaskPriority | undefined;
-      const dueDateValue = task.dueDate ? new Date(task.dueDate) : undefined;
+      const dueDateRaw = task.dueDate?.trim();
 
-      if (!taskTitle || !taskDescription || !priority || !task.dueDate) {
+      if (!taskTitle || !taskDescription || !priority || !dueDateRaw) {
         throw new BadRequestException(`Task #${index + 1} has invalid payload`);
       }
       if (!ALLOWED_PRIORITIES.includes(priority)) {
         throw new BadRequestException(`Task #${index + 1} has invalid priority`);
       }
+      const dueDateValue = new Date(dueDateRaw);
       if (Number.isNaN(dueDateValue.getTime())) {
         throw new BadRequestException(`Task #${index + 1} has invalid dueDate`);
       }

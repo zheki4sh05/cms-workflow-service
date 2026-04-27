@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ActionPlanTaskPriority } from '../../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
 
 export class CreateActionPlanTaskDto {
   @ApiProperty({ example: 'Пересмотреть регламент' })
@@ -9,7 +8,7 @@ export class CreateActionPlanTaskDto {
   description!: string;
 
   @ApiProperty({ example: 'NORMAL' })
-  priority!: ActionPlanTaskPriority;
+  priority!: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
 
   @ApiProperty({ example: '2026-05-05T00:00:00.000Z' })
   dueDate!: string;

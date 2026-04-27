@@ -19,6 +19,7 @@ import { CreateCaseCommentDto } from './dto/create-case-comment.dto';
 import { AddCaseAttachmentUseCase } from '../../core/case-management/use-cases/add-case-attachment.use-case';
 import { GetCaseCommentsUseCase } from '../../core/case-management/use-cases/get-case-comments.use-case';
 import { GetCaseAttachmentsUseCase } from '../../core/case-management/use-cases/get-case-attachments.use-case';
+import { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
 
 @Controller('api/cases')
 export class CaseController {
@@ -82,7 +83,7 @@ export class CaseController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  addAttachment(@Param('caseId') caseId: string, @UploadedFile() file?: Express.Multer.File) {
+  addAttachment(@Param('caseId') caseId: string, @UploadedFile() file?: UploadedBinaryFile) {
     return this.addCaseAttachmentUseCase.execute(caseId, { file });
   }
 }

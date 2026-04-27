@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Client } from 'minio';
 import { randomUUID } from 'crypto';
 import { getNumberEnvOrDefault } from '../../web/app/env';
+import { UploadedFile } from '../../core/case-management/types/uploaded-file.type';
 
 @Injectable()
 export class MinioStorageService {
@@ -15,7 +16,7 @@ export class MinioStorageService {
     secretKey: process.env.MINIO_SECRET_KEY?.trim() || 'minioadmin',
   });
 
-  async uploadCaseAttachment(file: Express.Multer.File): Promise<string> {
+  async uploadCaseAttachment(file: UploadedFile): Promise<string> {
     const fileId = randomUUID();
     await this.ensureBucket();
     await this.client.putObject(
