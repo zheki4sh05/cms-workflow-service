@@ -22,10 +22,11 @@ export class CreateIncidentCaseFindingTables1745751900000
       CREATE TABLE IF NOT EXISTS "cases" (
         "id" uuid NOT NULL,
         "incidentId" uuid NOT NULL,
-        "responsibleUserId" character varying(255),
+        "findingId" uuid NOT NULL,
+        "assignedUserId" character varying(255),
         "status" character varying(20) NOT NULL,
         CONSTRAINT "PK_cases_id" PRIMARY KEY ("id"),
-        CONSTRAINT "uq_cases_incident_assignee" UNIQUE ("incidentId", "responsibleUserId"),
+        CONSTRAINT "uq_cases_incident_assignee" UNIQUE ("incidentId", "findingId", "assignedUserId"),
         CONSTRAINT "FK_cases_incident_id" FOREIGN KEY ("incidentId") REFERENCES "incident"("id") ON DELETE CASCADE ON UPDATE NO ACTION
       )
     `);
@@ -37,10 +38,16 @@ export class CreateIncidentCaseFindingTables1745751900000
         "assignedUserId" character varying(255),
         "details" jsonb NOT NULL,
         "incidentId" uuid NOT NULL,
-        "caseId" uuid NOT NULL,
         CONSTRAINT "PK_findings_id" PRIMARY KEY ("id"),
         CONSTRAINT "FK_findings_incident_id" FOREIGN KEY ("incidentId") REFERENCES "incident"("id") ON DELETE CASCADE ON UPDATE NO ACTION
       )
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE "cases"
+      ADD CONSTRAINT "FK_cases_finding_id"
+      FOREIGN KEY ("findingId") REFERENCES "findings"("id")
+      ON DELETE CASCADE ON UPDATE NO ACTION
     `);
   }
 

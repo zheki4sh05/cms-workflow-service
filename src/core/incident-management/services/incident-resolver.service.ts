@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { IncidentTopicRule } from '../contracts/incident-topic-message.contract';
 import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
@@ -20,14 +19,7 @@ interface IncidentOutboxPayload {
 export class IncidentResolverService {
   private readonly logger = new Logger(IncidentResolverService.name);
 
-  constructor(
-    @InjectRepository(IncidentOrmEntity)
-    private readonly incidentRepository: Repository<IncidentOrmEntity>,
-    @InjectRepository(CaseOrmEntity)
-    private readonly caseRepository: Repository<CaseOrmEntity>,
-    @InjectRepository(FindingOrmEntity)
-    private readonly findingRepository: Repository<FindingOrmEntity>,
-  ) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   async resolveOutboxMessage(message: OutboxMessageEntity): Promise<void> {
     this.logger.log(`Incident resolver started: outboxMessageId=${message.id}`);
@@ -36,7 +28,8 @@ export class IncidentResolverService {
       !payload?.companyId ||
       typeof payload.integrationId !== 'number' ||
       !payload.riskObjectId ||
-      !Array.isArray(payload.rules)
+      !Array.isArray(payload.rules) ||
+      payload.rules.length === 0
     ) {
       this.logger.warn(`Invalid outbox payload, messageId=${message.id}`);
       return;
@@ -49,46 +42,42 @@ export class IncidentResolverService {
     this.logger.log(
       `Creating incident: incidentId=${incidentId}, outboxMessageId=${message.id}`,
     );
-    await this.incidentRepository.save({
-      id: incidentId,
-      companyId: payload.companyId,
-      integrationId: payload.integrationId,
-      riskObjectId: payload.riskObjectId,
-      documentId: payload.documentId ?? null,
-      status: 'OPEN',
-    });
-    this.logger.log(
-      `Incident created: incidentId=${incidentId}, status=OPEN, outboxMessageId=${message.id}`,
-    );
+    await this.dataSource.transaction(async (manager) => {
+      await manager.save(IncidentOrmEntity, {
+        id: incidentId,
+        companyId: payload.companyId!,
+        integrationId: payload.integrationId!,
+        riskObjectId: payload.riskObjectId!,
+        documentId: payload.documentId ?? null,
+        status: 'OPEN',
+      });
 
-    const caseIdByResponsibleUserId = new Map<string, string>();
+      for (const rule of payload.rules!) {
+        const assignedUserId = rule.responsible_user_id ?? 'UNASSIGNED';
+        const findingId = randomUUID();
 
-    for (const rule of payload.rules) {
-      const responsibleUserId = rule.responsible_user_id ?? 'UNASSIGNED';
-      let caseId = caseIdByResponsibleUserId.get(responsibleUserId);
-
-      if (!caseId) {
-        caseId = randomUUID();
-        caseIdByResponsibleUserId.set(responsibleUserId, caseId);
-
-        await this.caseRepository.save({
-          id: caseId,
+        await manager.save(FindingOrmEntity, {
+          id: findingId,
+          priority: rule.rulePriority,
+          assignedUserId: assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
+          details:
+            rule.details ??
+            ((rule as { detaild?: Record<string, unknown> }).detaild ?? {}),
           incidentId,
-          responsibleUserId:
-            responsibleUserId === 'UNASSIGNED' ? null : responsibleUserId,
-          status: 'OPEN',
+        });
+
+        await manager.save(CaseOrmEntity, {
+          id: randomUUID(),
+          incidentId,
+          assignedUserId: assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
+          status: 'ASSIGNED',
+          findingId,
         });
       }
+    });
 
-      await this.findingRepository.save({
-        id: randomUUID(),
-        priority: rule.rulePriority,
-        assignedUserId:
-          responsibleUserId === 'UNASSIGNED' ? null : responsibleUserId,
-        details: rule.details ?? ((rule as { detaild?: Record<string, unknown> }).detaild ?? {}),
-        incidentId,
-        caseId,
-      });
-    }
+    this.logger.log(
+      `Incident graph created: incidentId=${incidentId}, status=OPEN, outboxMessageId=${message.id}`,
+    );
   }
 }

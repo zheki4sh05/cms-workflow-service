@@ -50,6 +50,12 @@ Environment variables:
 - `DB_NAME` (default: `cms_workflow`)
 - `DB_SYNCHRONIZE` (default: `false`, set `true` only for local development)
 - `OUTBOX_RESOLVER_INTERVAL_MINUTES` (default: `1`, set `10` to run every 10 minutes)
+- `MINIO_ENDPOINT` (default: `localhost`)
+- `MINIO_PORT` (default: `9000`)
+- `MINIO_USE_SSL` (default: `false`)
+- `MINIO_ACCESS_KEY` (default: `minioadmin`)
+- `MINIO_SECRET_KEY` (default: `minioadmin`)
+- `MINIO_BUCKET` (default: `cms-workflow-attachments`)
 
 ## Project setup
 
@@ -69,6 +75,25 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## API documentation
+
+Swagger UI is available at:
+
+- `http://localhost:3000/api/docs`
+
+## MinIO for attachments
+
+Run MinIO for this service locally:
+
+```bash
+docker compose -f docker-compose.minio.yml up -d
+```
+
+MinIO endpoints:
+
+- S3 API: `http://localhost:9000`
+- Console: `http://localhost:9001`
 
 ## Run tests
 

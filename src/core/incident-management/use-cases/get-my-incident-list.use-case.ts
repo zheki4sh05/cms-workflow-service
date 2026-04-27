@@ -30,15 +30,15 @@ export class GetMyIncidentListUseCase {
 
   async execute(): Promise<IncidentOrmEntity[]> {
     const user = await this.fetchCurrentUser();
-    const responsibleUserIds = [user.id, user.employeeId].filter(Boolean);
+    const assignedUserIds = [user.id, user.employeeId].filter(Boolean);
 
-    if (responsibleUserIds.length === 0) {
+    if (assignedUserIds.length === 0) {
       return [];
     }
 
     const cases = await this.caseRepository.find({
-      where: responsibleUserIds.map((responsibleUserId) => ({
-        responsibleUserId,
+      where: assignedUserIds.map((assignedUserId) => ({
+        assignedUserId,
       })),
     });
 

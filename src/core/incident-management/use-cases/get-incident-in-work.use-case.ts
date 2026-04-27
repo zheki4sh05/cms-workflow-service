@@ -43,11 +43,11 @@ export class GetIncidentInWorkUseCase {
       throw new ForbiddenException('User does not belong to incident company');
     }
 
-    const responsibleUserIds = [user.id, user.employeeId].filter(Boolean);
+    const assignedUserIds = [user.id, user.employeeId].filter(Boolean);
     const userCase = await this.caseRepository.findOne({
-      where: responsibleUserIds.map((responsibleUserId) => ({
+      where: assignedUserIds.map((assignedUserId) => ({
         incidentId: incident.id,
-        responsibleUserId,
+        assignedUserId,
       })),
     });
 

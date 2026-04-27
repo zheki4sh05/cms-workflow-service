@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import { IncidentOrmEntity } from './incident.orm-entity';
+import { CaseOrmEntity } from '../../case-management/persistence/case.orm-entity';
 
 @Entity({ name: 'findings' })
 export class FindingOrmEntity {
@@ -22,6 +23,6 @@ export class FindingOrmEntity {
   @Column({ type: 'uuid' })
   incidentId!: string;
 
-  @Column({ type: 'uuid' })
-  caseId!: string;
+  @OneToMany(() => CaseOrmEntity, (incidentCase) => incidentCase.finding)
+  cases!: CaseOrmEntity[];
 }
