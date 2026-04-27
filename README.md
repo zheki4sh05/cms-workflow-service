@@ -35,7 +35,8 @@ Target architecture for Workflow Service (incidents, investigations, action plan
 
 - Consumer subscribes to Kafka topic `incident_topic` via Nest microservice transport.
 - Incoming messages are normalized and saved into outbox with status `pending`.
-- Scheduler (`@nestjs/schedule`) polls pending outbox messages every 30 seconds for further processing.
+- Scheduler (`@nestjs/schedule`) polls pending outbox messages for processing of `incident_topic.received`.
+- Polling interval is configurable via `OUTBOX_RESOLVER_INTERVAL_MINUTES`.
 
 Environment variables:
 
@@ -48,6 +49,7 @@ Environment variables:
 - `DB_PASSWORD` (default: `postgres`)
 - `DB_NAME` (default: `cms_workflow`)
 - `DB_SYNCHRONIZE` (default: `false`, set `true` only for local development)
+- `OUTBOX_RESOLVER_INTERVAL_MINUTES` (default: `1`, set `10` to run every 10 minutes)
 
 ## Project setup
 

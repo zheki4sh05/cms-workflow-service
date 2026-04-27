@@ -57,3 +57,17 @@ export function getRequiredNumberEnv(name: string): number {
 
   return parsed;
 }
+
+export function getNumberEnvOrDefault(name: string, defaultValue: number): number {
+  const value = process.env[name];
+  if (value === undefined || !value.trim()) {
+    return defaultValue;
+  }
+
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`Env variable ${name} must be a number`);
+  }
+
+  return parsed;
+}

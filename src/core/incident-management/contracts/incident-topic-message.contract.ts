@@ -11,5 +11,6 @@ export interface IncidentTopicMessage {
   companyId: string;
   integrationId: number;
   riskObjectId: string;
+  documentId?: string;
   rules: IncidentTopicRule[];
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { IncidentTopicMessage } from '../contracts/incident-topic-message.contract';
 import {
@@ -8,6 +8,8 @@ import type { OutboxRepositoryPort } from '../../outbox/ports/outbox.repository.
 
 @Injectable()
 export class IngestIncidentTopicUseCase {
+  private readonly logger = new Logger(IngestIncidentTopicUseCase.name);
+
   constructor(
     @Inject(OUTBOX_REPOSITORY)
     private readonly outboxRepository: OutboxRepositoryPort,
@@ -15,6 +17,7 @@ export class IngestIncidentTopicUseCase {
 
   async execute(message: IncidentTopicMessage): Promise<void> {
     if (!message?.companyId || !message?.riskObjectId || !Array.isArray(message?.rules)) {
+      this.logger.warn('Incident topic message ignored due to invalid payload');
       return;
     }
 
@@ -22,6 +25,7 @@ export class IngestIncidentTopicUseCase {
       companyId: message.companyId,
       integrationId: message.integrationId,
       riskObjectId: message.riskObjectId,
+      documentId: message.documentId,
       rules: message.rules,
       receivedAt: new Date().toISOString(),
     };
@@ -33,5 +37,8 @@ export class IngestIncidentTopicUseCase {
       createdAt: new Date(),
       status: 'pending',
     });
+    this.logger.log(
+      `Outbox message created from incident topic: companyId=${message.companyId}, riskObjectId=${message.riskObjectId}, rulesCount=${message.rules.length}`,
+    );
   }
 }

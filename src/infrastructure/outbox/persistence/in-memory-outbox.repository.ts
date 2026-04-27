@@ -16,6 +16,27 @@ export class InMemoryOutboxRepository implements OutboxRepositoryPort {
       .slice(0, limit);
   }
 
+  async getStatusStats(): Promise<Record<string, number>> {
+    const stats: Record<string, number> = {};
+    for (const message of this.messages.values()) {
+      stats[message.status] = (stats[message.status] ?? 0) + 1;
+    }
+
+    return stats;
+  }
+
+  async deleteProcessed(): Promise<number> {
+    let removed = 0;
+    for (const [id, message] of this.messages.entries()) {
+      if (message.status === 'processed') {
+        this.messages.delete(id);
+        removed += 1;
+      }
+    }
+
+    return removed;
+  }
+
   async markProcessed(id: string): Promise<void> {
     const current = this.messages.get(id);
     if (!current) return;

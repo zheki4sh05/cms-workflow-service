@@ -26,6 +26,25 @@ export class PostgresOutboxRepository implements OutboxRepositoryPort {
     });
   }
 
+  async getStatusStats(): Promise<Record<string, number>> {
+    const rows = await this.outboxRepository
+      .createQueryBuilder('outbox')
+      .select('outbox.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('outbox.status')
+      .getRawMany<{ status: string; count: string }>();
+
+    return rows.reduce<Record<string, number>>((acc, row) => {
+      acc[row.status] = Number(row.count);
+      return acc;
+    }, {});
+  }
+
+  async deleteProcessed(): Promise<number> {
+    const result = await this.outboxRepository.delete({ status: 'processed' });
+    return result.affected ?? 0;
+  }
+
   async markProcessed(id: string): Promise<void> {
     await this.outboxRepository.update(
       { id },
