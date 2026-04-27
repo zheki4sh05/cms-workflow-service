@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, Unique } from 'typeorm';
 import { IncidentOrmEntity } from '../../incident-management/persistence/incident.orm-entity';
 
-export type CaseStatus = 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
+export type CaseStatus = 'OPEN' | 'INVESTIGATING' | 'IN_PROGRESS' | 'CLOSED';
 
 @Entity({ name: 'cases' })
 @Unique('uq_cases_incident_assignee', ['incidentId', 'responsibleUserId'])

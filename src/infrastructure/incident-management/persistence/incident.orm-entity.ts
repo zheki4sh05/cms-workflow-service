@@ -1,6 +1,10 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-export type IncidentStatus = 'OPEN' | 'RESOLVED';
+export type IncidentStatus =
+  | 'OPEN'
+  | 'PARTLY_PROGRESS'
+  | 'IN_PROGRESS'
+  | 'RESOLVED';
 
 @Entity({ name: 'incident' })
 export class IncidentOrmEntity {
