@@ -22,7 +22,7 @@ export class ReopenCaseUseCase {
       );
     }
 
-    currentCase.status = 'ASSIGNED';
+    currentCase.status = 'INVESTIGATING';
     await this.caseRepository.save(currentCase);
 
     return {

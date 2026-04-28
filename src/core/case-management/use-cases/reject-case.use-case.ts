@@ -36,6 +36,12 @@ export class RejectCaseUseCase {
       throw new NotFoundException('Case not found');
     }
 
+    if (currentCase.status !== 'INVESTIGATING') {
+      throw new BadRequestException(
+        'Case can be rejected only from INVESTIGATING status',
+      );
+    }
+
     const incident = await this.incidentRepository.findOne({
       where: { id: currentCase.incidentId },
     });

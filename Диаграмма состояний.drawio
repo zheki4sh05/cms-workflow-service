@@ -1,0 +1,118 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.2 Chrome/134.0.6998.205 Electron/35.3.0 Safari/537.36" version="27.0.2">
+  <diagram name="Workflow Service State Diagram" id="0">
+    <mxGraphModel dx="1845" dy="2052" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="init" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#0097a7;strokeColor=#006064;" parent="1" vertex="1">
+          <mxGeometry x="245" y="-10" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="open" value="OPEN&lt;div&gt;(Поступил инцидент)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" parent="1" vertex="1">
+          <mxGeometry x="150" y="70" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="assigned" value="ASSIGNED&lt;div&gt;(Создан кейс с назначенным ответственный)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffde7;strokeColor=#fbc02d;" parent="1" vertex="1">
+          <mxGeometry x="150" y="160" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="invest" value="INVESTIGATING&lt;div&gt;(Расследование)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;" parent="1" vertex="1">
+          <mxGeometry x="150" y="240" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="actionplan" value="ACTION_PLAN&lt;div&gt;(План действий)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffecb3;strokeColor=#fbc02d;" parent="1" vertex="1">
+          <mxGeometry x="150" y="320" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="inprogress" value="ACTION_IN_PROGRESS&lt;div&gt;(Исполнение мероприятий)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#7b1fa2;" parent="1" vertex="1">
+          <mxGeometry x="150" y="490" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="waitingverif" value="WAITING_VERIFICATION&lt;div&gt;(Ожидание проверки)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;" parent="1" vertex="1">
+          <mxGeometry x="150" y="400" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="escalated" value="OVERDUE&lt;div&gt;(Просрочено выполнение)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;" parent="1" vertex="1">
+          <mxGeometry x="-200" y="350" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="rejected" value="REJECTED&lt;div&gt;(Отклонён/ложно позитивный)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#757575;" parent="1" vertex="1">
+          <mxGeometry x="600" y="290" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="xbyH8biGKXldTJtfN2xa-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startFill=0;entryX=0.496;entryY=-0.011;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="closed" target="end" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="740" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="265" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="closed" value="CLOSED&lt;div&gt;(Кейс завершен)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00897b;" parent="1" vertex="1">
+          <mxGeometry x="150" y="570" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="end" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#388e3c;strokeColor=#2e7d32;" parent="1" vertex="1">
+          <mxGeometry x="245" y="730" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c1" value="createCase/IncidentRaised" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;html=1;" parent="1" source="init" target="open" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="assign(case, user)" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="open" target="assigned" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c3" value="startInvestigation" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;html=1;" parent="1" source="assigned" target="invest" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="submitEvidence" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;html=1;" parent="1" source="invest" target="actionplan" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c9" value="timeout" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;dashed=1;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="inprogress" target="escalated" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="405.0000000000001" as="sourcePoint" />
+            <mxPoint x="20" y="385.0000000000001" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-130" y="515" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c10" value="escalate(case)" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;html=1;" parent="1" source="escalated" target="assigned" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="60" y="375" />
+              <mxPoint x="60" y="185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c11" value="rejectCase" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" parent="1" source="invest" target="rejected" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="250" />
+              <mxPoint x="670" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c12" value="reopen(case)" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;dashed=1;html=1;" parent="1" source="rejected" target="invest" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c13" value="closeCase" style="edgeStyle=orthogonalEdgeStyle;endArrow=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="rejected" target="end" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="670" y="440" />
+              <mxPoint x="440" y="440" />
+              <mxPoint x="440" y="650" />
+              <mxPoint x="265" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uT2PiCFOAQsZZH_htFjv-1" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="uT2PiCFOAQsZZH_htFjv-2" target="invest">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-140" y="180" as="sourcePoint" />
+            <mxPoint x="-170" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uT2PiCFOAQsZZH_htFjv-2" value="Прикрепить комменты, файлы, расследование" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-190" y="230" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uT2PiCFOAQsZZH_htFjv-4" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.25;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="uT2PiCFOAQsZZH_htFjv-3" target="assigned">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uT2PiCFOAQsZZH_htFjv-3" value="берется в&amp;nbsp; работу" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-190" y="100" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

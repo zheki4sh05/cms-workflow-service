@@ -13,6 +13,7 @@ import { CreateActionPlansTable1745866500000 } from '../../infrastructure/databa
 import { DropLegacyFindingsCaseId1745867400000 } from '../../infrastructure/database/migrations/1745867400000-drop-legacy-findings-case-id';
 import { CreateCaseCommentsAndAttachments1745870400000 } from '../../infrastructure/database/migrations/1745870400000-create-case-comments-and-attachments';
 import { AddActionPlanTasksAndFields1745874300000 } from '../../infrastructure/database/migrations/1745874300000-add-action-plan-tasks-and-fields';
+import { CreateInvestigationsTable1745877000000 } from '../../infrastructure/database/migrations/1745877000000-create-investigations-table';
 import { CaseManagementModule } from '../case-management/case-management.module';
 import { ActionPlanManagementModule } from '../action-plan-management/action-plan-management.module';
 
@@ -37,6 +38,7 @@ loadEnvFile();
         DropLegacyFindingsCaseId1745867400000,
         CreateCaseCommentsAndAttachments1745870400000,
         AddActionPlanTasksAndFields1745874300000,
+        CreateInvestigationsTable1745877000000,
       ],
       migrationsRun: process.env.DB_RUN_MIGRATIONS === 'true',
       entities: [OutboxMessageOrmEntity],

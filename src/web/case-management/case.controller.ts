@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Param,
   Post,
   Put,
@@ -19,7 +20,9 @@ import { CreateCaseCommentDto } from './dto/create-case-comment.dto';
 import { AddCaseAttachmentUseCase } from '../../core/case-management/use-cases/add-case-attachment.use-case';
 import { GetCaseCommentsUseCase } from '../../core/case-management/use-cases/get-case-comments.use-case';
 import { GetCaseAttachmentsUseCase } from '../../core/case-management/use-cases/get-case-attachments.use-case';
-import { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
+import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
+import { UpdateCaseInvestigationUseCase } from '../../core/case-management/use-cases/update-case-investigation.use-case';
+import { UpdateCaseInvestigationDto } from './dto/update-case-investigation.dto';
 
 @Controller('api/cases')
 export class CaseController {
@@ -31,6 +34,7 @@ export class CaseController {
     private readonly getCaseCommentsUseCase: GetCaseCommentsUseCase,
     private readonly addCaseAttachmentUseCase: AddCaseAttachmentUseCase,
     private readonly getCaseAttachmentsUseCase: GetCaseAttachmentsUseCase,
+    private readonly updateCaseInvestigationUseCase: UpdateCaseInvestigationUseCase,
   ) {}
 
   @Get()
@@ -47,6 +51,15 @@ export class CaseController {
   @Put(':caseId/reopen')
   reopen(@Param('caseId') caseId: string) {
     return this.reopenCaseUseCase.execute(caseId);
+  }
+
+  @Patch(':caseId/investigation')
+  @ApiBody({ type: UpdateCaseInvestigationDto, required: true })
+  updateInvestigation(
+    @Param('caseId') caseId: string,
+    @Body() body: UpdateCaseInvestigationDto,
+  ) {
+    return this.updateCaseInvestigationUseCase.execute(caseId, body);
   }
 
   @Get(':caseId/comments')

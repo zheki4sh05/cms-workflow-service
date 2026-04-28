@@ -7,6 +7,7 @@ import { AddCaseCommentUseCase } from '../../core/case-management/use-cases/add-
 import { AddCaseAttachmentUseCase } from '../../core/case-management/use-cases/add-case-attachment.use-case';
 import { GetCaseCommentsUseCase } from '../../core/case-management/use-cases/get-case-comments.use-case';
 import { GetCaseAttachmentsUseCase } from '../../core/case-management/use-cases/get-case-attachments.use-case';
+import { UpdateCaseInvestigationUseCase } from '../../core/case-management/use-cases/update-case-investigation.use-case';
 import { CASE_REPOSITORY } from '../../core/case-management/ports/case.repository.port';
 import { InMemoryCaseRepository } from '../../infrastructure/case-management/persistence/in-memory-case.repository';
 import { CaseController } from './case.controller';
@@ -15,6 +16,7 @@ import { IncidentOrmEntity } from '../../infrastructure/incident-management/pers
 import { ActionPlanOrmEntity } from '../../infrastructure/action-plan-management/persistence/action-plan.orm-entity';
 import { CaseCommentOrmEntity } from '../../infrastructure/case-management/persistence/case-comment.orm-entity';
 import { CaseAttachmentOrmEntity } from '../../infrastructure/case-management/persistence/case-attachment.orm-entity';
+import { InvestigationOrmEntity } from '../../infrastructure/investigation-management/persistence/investigation.orm-entity';
 import { CaseCollaborationAccessService } from '../../core/case-management/services/case-collaboration-access.service';
 import { MinioStorageService } from '../../infrastructure/storage/minio-storage.service';
 
@@ -26,6 +28,7 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
       ActionPlanOrmEntity,
       CaseCommentOrmEntity,
       CaseAttachmentOrmEntity,
+      InvestigationOrmEntity,
     ]),
   ],
   controllers: [CaseController],
@@ -37,6 +40,7 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
     GetCaseCommentsUseCase,
     AddCaseAttachmentUseCase,
     GetCaseAttachmentsUseCase,
+    UpdateCaseInvestigationUseCase,
     CaseCollaborationAccessService,
     MinioStorageService,
     InMemoryCaseRepository,

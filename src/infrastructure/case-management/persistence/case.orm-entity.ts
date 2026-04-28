@@ -3,17 +3,20 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
   Unique,
 } from 'typeorm';
 import { IncidentOrmEntity } from '../../incident-management/persistence/incident.orm-entity';
 import { FindingOrmEntity } from '../../incident-management/persistence/finding.orm-entity';
+import { InvestigationOrmEntity } from '../../investigation-management/persistence/investigation.orm-entity';
 
 export type CaseStatus =
   | 'ASSIGNED'
   | 'ACTION_PLAN'
   | 'OPEN'
   | 'INVESTIGATING'
+  | 'WAITING_VERIFICATION'
   | 'IN_PROGRESS'
   | 'REJECTED'
   | 'CLOSED';
@@ -46,4 +49,7 @@ export class CaseOrmEntity {
 
   @Column({ type: 'uuid' })
   findingId!: string;
+
+  @OneToOne(() => InvestigationOrmEntity, (investigation) => investigation.case)
+  investigation?: InvestigationOrmEntity | null;
 }
