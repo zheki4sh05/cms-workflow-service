@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
-import { getRequiredEnv, loadEnvFile } from './app/env';
+import { getRequiredEnv, getRequiredNumberEnv, loadEnvFile } from './app/env';
 
 loadEnvFile();
 
@@ -36,6 +36,6 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 9095);
+  await app.listen(getRequiredNumberEnv('PORT'));
 }
 bootstrap();

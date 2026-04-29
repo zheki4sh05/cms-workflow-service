@@ -9,6 +9,7 @@ import { ActionPlanController } from './action-plan.controller';
 import { ActionPlanOrmEntity } from '../../infrastructure/action-plan-management/persistence/action-plan.orm-entity';
 import { ActionPlanTaskOrmEntity } from '../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
 import { CaseOrmEntity } from '../../infrastructure/case-management/persistence/case.orm-entity';
+import { VerificationOrmEntity } from '../../infrastructure/action-plan-management/persistence/verification.orm-entity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CaseOrmEntity } from '../../infrastructure/case-management/persistence/
       ActionPlanOrmEntity,
       ActionPlanTaskOrmEntity,
       CaseOrmEntity,
+      VerificationOrmEntity,
     ]),
   ],
   controllers: [ActionPlanController],
