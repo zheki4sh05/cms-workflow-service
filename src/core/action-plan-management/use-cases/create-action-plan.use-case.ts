@@ -10,6 +10,7 @@ import { ActionPlanOrmEntity } from '../../../infrastructure/action-plan-managem
 import {
   ActionPlanTaskOrmEntity,
   ActionPlanTaskPriority,
+  ActionPlanTaskStatus,
 } from '../../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
 
@@ -33,6 +34,7 @@ const ALLOWED_PRIORITIES: ActionPlanTaskPriority[] = [
   'HIGH',
   'CRITICAL',
 ];
+const DEFAULT_TASK_STATUS: ActionPlanTaskStatus = 'TODO';
 
 @Injectable()
 export class CreateActionPlanUseCase {
@@ -92,6 +94,7 @@ export class CreateActionPlanUseCase {
         description: taskDescription,
         priority,
         dueDate: dueDateValue,
+        status: DEFAULT_TASK_STATUS,
       };
     });
 
@@ -114,6 +117,7 @@ export class CreateActionPlanUseCase {
           description: task.description,
           priority: task.priority,
           dueDate: task.dueDate,
+          status: task.status,
         });
       }
 

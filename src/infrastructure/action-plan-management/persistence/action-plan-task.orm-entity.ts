@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { ActionPlanOrmEntity } from './action-plan.orm-entity';
 
 export type ActionPlanTaskPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
+export type ActionPlanTaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
 
 @Entity({ name: 'action_plan_tasks' })
 export class ActionPlanTaskOrmEntity {
@@ -26,4 +27,16 @@ export class ActionPlanTaskOrmEntity {
 
   @Column({ type: 'timestamptz' })
   dueDate!: Date;
+
+  @Column({ type: 'varchar', length: 20, default: 'TODO' })
+  status!: ActionPlanTaskStatus;
+
+  @Column({ type: 'text', nullable: true })
+  evidenceDescriptionInprogress!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  evidenceDescriptionDone!: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  completedAt!: Date | null;
 }

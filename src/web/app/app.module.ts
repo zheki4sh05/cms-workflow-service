@@ -15,6 +15,11 @@ import { CreateCaseCommentsAndAttachments1745870400000 } from '../../infrastruct
 import { AddActionPlanTasksAndFields1745874300000 } from '../../infrastructure/database/migrations/1745874300000-add-action-plan-tasks-and-fields';
 import { CreateInvestigationsTable1745877000000 } from '../../infrastructure/database/migrations/1745877000000-create-investigations-table';
 import { CreateVerificationsTable1745878800000 } from '../../infrastructure/database/migrations/1745878800000-create-verifications-table';
+import { AddCommentsToVerifications1745880600000 } from '../../infrastructure/database/migrations/1745880600000-add-comments-to-verifications';
+import { CreateActionPlanTaskEvidencesTable1745882400000 } from '../../infrastructure/database/migrations/1745882400000-create-action-plan-task-evidences-table';
+import { AddStatusToActionPlanTasks1745883900000 } from '../../infrastructure/database/migrations/1745883900000-add-status-to-action-plan-tasks';
+import { AddTaskProgressAndCompletionFields1745885400000 } from '../../infrastructure/database/migrations/1745885400000-add-task-progress-and-completion-fields';
+import { FixTaskStatusInProgress1745886600000 } from '../../infrastructure/database/migrations/1745886600000-fix-task-status-in-progress';
 import { CaseManagementModule } from '../case-management/case-management.module';
 import { ActionPlanManagementModule } from '../action-plan-management/action-plan-management.module';
 
@@ -41,6 +46,11 @@ loadEnvFile();
         AddActionPlanTasksAndFields1745874300000,
         CreateInvestigationsTable1745877000000,
         CreateVerificationsTable1745878800000,
+        AddCommentsToVerifications1745880600000,
+        CreateActionPlanTaskEvidencesTable1745882400000,
+        AddStatusToActionPlanTasks1745883900000,
+        AddTaskProgressAndCompletionFields1745885400000,
+        FixTaskStatusInProgress1745886600000,
       ],
       migrationsRun: process.env.DB_RUN_MIGRATIONS === 'true',
       entities: [OutboxMessageOrmEntity],

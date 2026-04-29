@@ -82,6 +82,7 @@ export class SubmitActionPlanUseCase {
       verified: false,
       assignedUserForVerification: departmentManager.userId,
       assignedEmployeeForVerification: departmentManager.employeeId,
+      comments: existingVerification?.comments ?? null,
     });
     await this.verificationRepository.save(verification);
 

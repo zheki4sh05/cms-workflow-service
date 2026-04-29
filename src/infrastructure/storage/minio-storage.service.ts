@@ -3,6 +3,7 @@ import { Client } from 'minio';
 import { randomUUID } from 'crypto';
 import { getNumberEnvOrDefault } from '../../web/app/env';
 import { UploadedFile } from '../../core/case-management/types/uploaded-file.type';
+import { Readable } from 'stream';
 
 @Injectable()
 export class MinioStorageService {
@@ -29,6 +30,20 @@ export class MinioStorageService {
       },
     );
     return fileId;
+  }
+
+  async downloadAttachment(fileId: string): Promise<{
+    stream: Readable;
+    contentType: string;
+  }> {
+    await this.ensureBucket();
+    const stat = await this.client.statObject(this.bucketName, fileId);
+    const stream = await this.client.getObject(this.bucketName, fileId);
+
+    return {
+      stream,
+      contentType: stat.metaData?.['content-type'] || 'application/octet-stream',
+    };
   }
 
   private async ensureBucket(): Promise<void> {

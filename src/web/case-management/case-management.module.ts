@@ -49,6 +49,6 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
       useExisting: InMemoryCaseRepository,
     },
   ],
-  exports: [GetCaseListUseCase],
+  exports: [GetCaseListUseCase, CaseCollaborationAccessService, MinioStorageService],
 })
 export class CaseManagementModule {}

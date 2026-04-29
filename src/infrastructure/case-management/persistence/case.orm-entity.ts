@@ -17,6 +17,7 @@ export type CaseStatus =
   | 'OPEN'
   | 'INVESTIGATING'
   | 'WAITING_VERIFICATION'
+  | 'ACTION_IN_PROGRESS'
   | 'IN_PROGRESS'
   | 'REJECTED'
   | 'CLOSED';

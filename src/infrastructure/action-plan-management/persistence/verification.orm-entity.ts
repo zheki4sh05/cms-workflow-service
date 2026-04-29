@@ -22,4 +22,7 @@ export class VerificationOrmEntity {
 
   @Column({ type: 'varchar', length: 255 })
   assignedEmployeeForVerification!: string;
+
+  @Column({ type: 'text', nullable: true })
+  comments!: string | null;
 }
