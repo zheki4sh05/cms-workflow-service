@@ -8,7 +8,13 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetMyTasksUseCase } from '../../core/action-plan-management/use-cases/get-my-tasks.use-case';
 import { GetTaskByIdUseCase } from '../../core/action-plan-management/use-cases/get-task-by-id.use-case';
@@ -18,6 +24,7 @@ import { AddTaskEvidenceUseCase } from '../../core/action-plan-management/use-ca
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CompleteTaskDto } from './dto/complete-task.dto';
 import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
+import { TaskEvidenceResponseDto, TaskResponseDto } from './dto/action-plan-response.dto';
 
 @Controller('api/tasks')
 export class TaskController {
@@ -30,28 +37,37 @@ export class TaskController {
   ) {}
 
   @Get('my')
+  @ApiOperation({ summary: 'Возвращает задачи текущего пользователя.' })
+  @ApiOkResponse({ type: TaskResponseDto, isArray: true })
   getMy() {
     return this.getMyTasksUseCase.execute();
   }
 
   @Get(':taskId')
+  @ApiOperation({ summary: 'Возвращает задачу по ее идентификатору.' })
+  @ApiOkResponse({ type: TaskResponseDto })
   getById(@Param('taskId') taskId: string) {
     return this.getTaskByIdUseCase.execute(taskId);
   }
 
   @Patch(':taskId')
+  @ApiOperation({ summary: 'Обновляет статус или описание прогресса задачи.' })
   @ApiBody({ type: UpdateTaskDto, required: true })
+  @ApiOkResponse({ type: TaskResponseDto })
   update(@Param('taskId') taskId: string, @Body() body: UpdateTaskDto) {
     return this.updateTaskUseCase.execute(taskId, body);
   }
 
   @Post(':taskId/complete')
+  @ApiOperation({ summary: 'Завершает задачу, фиксируя результат выполнения.' })
   @ApiBody({ type: CompleteTaskDto, required: true })
+  @ApiOkResponse({ type: TaskResponseDto })
   complete(@Param('taskId') taskId: string, @Body() body: CompleteTaskDto) {
     return this.completeTaskUseCase.execute(taskId, body);
   }
 
   @Post(':taskId/evidence')
+  @ApiOperation({ summary: 'Загружает файл-доказательство выполнения задачи.' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -66,6 +82,7 @@ export class TaskController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
+  @ApiCreatedResponse({ type: TaskEvidenceResponseDto })
   addEvidence(@Param('taskId') taskId: string, @UploadedFile() file?: UploadedBinaryFile) {
     return this.addTaskEvidenceUseCase.execute(taskId, { file });
   }

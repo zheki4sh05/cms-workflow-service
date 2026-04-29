@@ -9,7 +9,14 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiProduces,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetActionPlanListUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-list.use-case';
 import { CreateActionPlanUseCase } from '../../core/action-plan-management/use-cases/create-action-plan.use-case';
@@ -19,6 +26,12 @@ import { AddActionPlanTaskEvidenceUseCase } from '../../core/action-plan-managem
 import { GetActionPlanTaskEvidencesUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-task-evidences.use-case';
 import { DownloadActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/download-action-plan-task-evidence.use-case';
 import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
+import {
+  ActionPlanListItemDto,
+  CreateActionPlanResponseDto,
+  TaskEvidenceResponseDto,
+} from './dto/action-plan-response.dto';
+import { CaseWithInvestigationResponseDto } from '../case-management/dto/case-response.dto';
 
 @Controller('api/action-plans')
 export class ActionPlanController {
@@ -32,22 +45,29 @@ export class ActionPlanController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Возвращает список всех планов действий.' })
+  @ApiOkResponse({ type: ActionPlanListItemDto, isArray: true })
   findAll() {
     return this.getActionPlanListUseCase.execute();
   }
 
   @Post()
+  @ApiOperation({ summary: 'Создает план действий и задачи для выбранного case.' })
   @ApiBody({ type: CreateActionPlanDto, required: true })
+  @ApiCreatedResponse({ type: CreateActionPlanResponseDto })
   create(@Body() body: CreateActionPlanDto) {
     return this.createActionPlanUseCase.execute(body);
   }
 
   @Post(':planId/submit')
+  @ApiOperation({ summary: 'Отправляет план на верификацию и переводит case в ожидание проверки.' })
+  @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
   submit(@Param('planId') planId: string) {
     return this.submitActionPlanUseCase.execute(planId);
   }
 
   @Post(':actionPlanId/tasks/:taskId/evidences')
+  @ApiOperation({ summary: 'Загружает файл-доказательство для задачи плана действий.' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -62,6 +82,7 @@ export class ActionPlanController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
+  @ApiCreatedResponse({ type: TaskEvidenceResponseDto })
   addTaskEvidence(
     @Param('actionPlanId') actionPlanId: string,
     @Param('taskId') taskId: string,
@@ -73,6 +94,8 @@ export class ActionPlanController {
   }
 
   @Get(':actionPlanId/tasks/:taskId/evidences')
+  @ApiOperation({ summary: 'Возвращает список файлов-доказательств задачи плана.' })
+  @ApiOkResponse({ type: TaskEvidenceResponseDto, isArray: true })
   getTaskEvidences(
     @Param('actionPlanId') actionPlanId: string,
     @Param('taskId') taskId: string,
@@ -81,7 +104,12 @@ export class ActionPlanController {
   }
 
   @Get(':actionPlanId/tasks/:taskId/evidences/:evidenceId/download')
+  @ApiOperation({ summary: 'Скачивает конкретный файл-доказательство по идентификатору.' })
   @Header('Cache-Control', 'no-store')
+  @ApiProduces('application/octet-stream')
+  @ApiOkResponse({
+    schema: { type: 'string', format: 'binary' },
+  })
   async downloadTaskEvidence(
     @Param('actionPlanId') actionPlanId: string,
     @Param('taskId') taskId: string,

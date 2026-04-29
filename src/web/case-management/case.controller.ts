@@ -9,7 +9,13 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCaseListUseCase } from '../../core/case-management/use-cases/get-case-list.use-case';
 import { RejectCaseUseCase } from '../../core/case-management/use-cases/reject-case.use-case';
@@ -23,6 +29,14 @@ import { GetCaseAttachmentsUseCase } from '../../core/case-management/use-cases/
 import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
 import { UpdateCaseInvestigationUseCase } from '../../core/case-management/use-cases/update-case-investigation.use-case';
 import { UpdateCaseInvestigationDto } from './dto/update-case-investigation.dto';
+import {
+  CaseAttachmentResponseDto,
+  CaseListItemResponseDto,
+  CaseCommentResponseDto,
+  CaseStateResponseDto,
+  CaseWithInvestigationResponseDto,
+  RejectCaseResponseDto,
+} from './dto/case-response.dto';
 
 @Controller('api/cases')
 export class CaseController {
@@ -38,23 +52,31 @@ export class CaseController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Возвращает список всех case записей.' })
+  @ApiOkResponse({ type: CaseListItemResponseDto, isArray: true })
   findAll() {
     return this.getCaseListUseCase.execute();
   }
 
   @Put(':caseId/reject')
+  @ApiOperation({ summary: 'Отклоняет case с указанием причины отклонения.' })
   @ApiBody({ type: RejectCaseDto, required: true })
+  @ApiOkResponse({ type: RejectCaseResponseDto })
   reject(@Param('caseId') caseId: string, @Body() body: RejectCaseDto) {
     return this.rejectCaseUseCase.execute(caseId, body);
   }
 
   @Put(':caseId/reopen')
+  @ApiOperation({ summary: 'Открывает ранее отклоненный case для повторной обработки.' })
+  @ApiOkResponse({ type: CaseStateResponseDto })
   reopen(@Param('caseId') caseId: string) {
     return this.reopenCaseUseCase.execute(caseId);
   }
 
   @Patch(':caseId/investigation')
+  @ApiOperation({ summary: 'Обновляет результаты расследования по выбранному case.' })
   @ApiBody({ type: UpdateCaseInvestigationDto, required: true })
+  @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
   updateInvestigation(
     @Param('caseId') caseId: string,
     @Body() body: UpdateCaseInvestigationDto,
@@ -63,12 +85,16 @@ export class CaseController {
   }
 
   @Get(':caseId/comments')
+  @ApiOperation({ summary: 'Возвращает комментарии, связанные с выбранным case.' })
+  @ApiOkResponse({ type: CaseCommentResponseDto, isArray: true })
   getComments(@Param('caseId') caseId: string) {
     return this.getCaseCommentsUseCase.execute(caseId);
   }
 
   @Post(':caseId/comments')
+  @ApiOperation({ summary: 'Добавляет новый комментарий к выбранному case.' })
   @ApiBody({ type: CreateCaseCommentDto, required: true })
+  @ApiCreatedResponse({ type: CaseCommentResponseDto })
   addComment(
     @Param('caseId') caseId: string,
     @Body() body: CreateCaseCommentDto,
@@ -77,11 +103,14 @@ export class CaseController {
   }
 
   @Get(':caseId/attachments')
+  @ApiOperation({ summary: 'Возвращает список файлов-вложений выбранного case.' })
+  @ApiOkResponse({ type: CaseAttachmentResponseDto, isArray: true })
   getAttachments(@Param('caseId') caseId: string) {
     return this.getCaseAttachmentsUseCase.execute(caseId);
   }
 
   @Post(':caseId/attachments')
+  @ApiOperation({ summary: 'Загружает файл-вложение для выбранного case.' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -96,6 +125,7 @@ export class CaseController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
+  @ApiCreatedResponse({ type: CaseAttachmentResponseDto })
   addAttachment(@Param('caseId') caseId: string, @UploadedFile() file?: UploadedBinaryFile) {
     return this.addCaseAttachmentUseCase.execute(caseId, { file });
   }
