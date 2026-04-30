@@ -61,12 +61,12 @@ export class IncidentResolverService {
           priority: rule.rulePriority,
           assignedUserId:
             assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
+          rulesId: rule.rulesId ?? null,
+          detectedAt: this.resolveDetectedAt(rule.detectedAt),
           details: {
             ...(rule.details ??
               (rule as { detaild?: Record<string, unknown> }).detaild ??
               {}),
-            rulesId: rule.rulesId,
-            foundAt: new Date().toISOString(),
           },
           incidentId,
         });
@@ -85,5 +85,16 @@ export class IncidentResolverService {
     this.logger.log(
       `Incident graph created: incidentId=${incidentId}, status=OPEN, outboxMessageId=${message.id}`,
     );
+  }
+
+  private resolveDetectedAt(rawDetectedAt?: string): Date {
+    if (rawDetectedAt) {
+      const parsed = new Date(rawDetectedAt);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed;
+      }
+      this.logger.warn(`Invalid rule detectedAt received: ${rawDetectedAt}`);
+    }
+    return new Date();
   }
 }

@@ -20,6 +20,8 @@ import { CreateActionPlanTaskEvidencesTable1745882400000 } from '../../infrastru
 import { AddStatusToActionPlanTasks1745883900000 } from '../../infrastructure/database/migrations/1745883900000-add-status-to-action-plan-tasks';
 import { AddTaskProgressAndCompletionFields1745885400000 } from '../../infrastructure/database/migrations/1745885400000-add-task-progress-and-completion-fields';
 import { FixTaskStatusInProgress1745886600000 } from '../../infrastructure/database/migrations/1745886600000-fix-task-status-in-progress';
+import { AddRulesIdToFindings1746113400000 } from '../../infrastructure/database/migrations/1746113400000-add-rules-id-to-findings';
+import { AddDetectedAtToFindings1746117060000 } from '../../infrastructure/database/migrations/1746117060000-add-detected-at-to-findings';
 import { CaseManagementModule } from '../case-management/case-management.module';
 import { ActionPlanManagementModule } from '../action-plan-management/action-plan-management.module';
 
@@ -51,6 +53,8 @@ loadEnvFile();
         AddStatusToActionPlanTasks1745883900000,
         AddTaskProgressAndCompletionFields1745885400000,
         FixTaskStatusInProgress1745886600000,
+        AddRulesIdToFindings1746113400000,
+        AddDetectedAtToFindings1746117060000,
       ],
       migrationsRun: process.env.DB_RUN_MIGRATIONS === 'true',
       entities: [OutboxMessageOrmEntity],

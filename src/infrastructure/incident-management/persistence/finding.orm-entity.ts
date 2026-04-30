@@ -20,6 +20,12 @@ export class FindingOrmEntity {
   @Column({ type: 'varchar', length: 255, nullable: true })
   assignedUserId!: string | null;
 
+  @Column({ type: 'uuid', nullable: true })
+  rulesId!: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  detectedAt!: Date | null;
+
   @Column({ type: 'jsonb' })
   details!: Record<string, unknown>;
 

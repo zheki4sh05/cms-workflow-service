@@ -1,6 +1,7 @@
 export interface IncidentTopicRule {
   rulesId: string;
   rulePriority: string;
+  detectedAt?: string;
   responsible_user_id: string | null;
   result: string;
   found: boolean;

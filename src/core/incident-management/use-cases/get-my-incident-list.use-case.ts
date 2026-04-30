@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   Scope,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -57,6 +58,8 @@ interface AuthUserDto {
 
 @Injectable({ scope: Scope.REQUEST })
 export class GetMyIncidentListUseCase {
+  private readonly logger = new Logger(GetMyIncidentListUseCase.name);
+
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     @InjectRepository(IncidentOrmEntity)
@@ -112,7 +115,7 @@ export class GetMyIncidentListUseCase {
     const ruleIds = Array.from(
       new Set(
         findings
-          .map((finding) => this.extractRuleId(finding.details))
+          .map((finding) => this.extractRuleId(finding))
           .filter((value): value is string => Boolean(value)),
       ),
     );
@@ -124,7 +127,7 @@ export class GetMyIncidentListUseCase {
         const incidentFindings = findingsByIncidentId.get(incident.id) ?? [];
         const relatedRules = incidentFindings
           .map((finding) => {
-            const ruleId = this.extractRuleId(finding.details);
+            const ruleId = this.extractRuleId(finding);
             if (!ruleId) {
               return null;
             }
@@ -219,6 +222,9 @@ export class GetMyIncidentListUseCase {
   ): string | null {
     const dates = [
       ...findings
+        .map((finding) => finding.detectedAt?.toISOString() ?? null)
+        .filter((value): value is string => Boolean(value)),
+      ...findings
         .map((finding) => this.extractFoundAt(finding.details))
         .filter((value): value is string => Boolean(value)),
       ...rules
@@ -283,7 +289,11 @@ export class GetMyIncidentListUseCase {
     return 'medium';
   }
 
-  private extractRuleId(details: Record<string, unknown>): string | null {
+  private extractRuleId(finding: FindingOrmEntity): string | null {
+    if (finding.rulesId) {
+      return finding.rulesId;
+    }
+    const details = finding.details;
     const possibleRuleId =
       details.rulesId ?? details.ruleId ?? details.rules_id ?? null;
     return typeof possibleRuleId === 'string' && possibleRuleId.length > 0
@@ -300,20 +310,31 @@ export class GetMyIncidentListUseCase {
     riskObjectId: string,
     companyId: string,
   ): Promise<RiskObjectResponse | null> {
-    const riskServiceUrl = process.env.CMS_RISK_SERVICE_URL;
-    if (!riskServiceUrl) {
-      throw new BadRequestException('CMS_RISK_SERVICE_URL is not configured');
+    const monitoringServiceUrl = process.env.CMS_MONITORING_SERVICE_URL;
+    if (!monitoringServiceUrl) {
+      throw new BadRequestException(
+        'CMS_MONITORING_SERVICE_URL is not configured',
+      );
     }
 
+    const url = `${monitoringServiceUrl}/api/internal/risk-objects/${riskObjectId}`;
+    this.logger.log(`Risk API request: GET ${url} CompanyId=${companyId}`);
     const response = await fetch(
-      `${riskServiceUrl}/api/internal/risk-objects/${riskObjectId}`,
+      url,
       {
         headers: {
           CompanyId: companyId,
         },
       },
     );
+    this.logger.log(
+      `Risk API response: GET ${url} status=${response.status} CompanyId=${companyId}`,
+    );
     if (!response.ok) {
+      const errorBody = await this.readErrorBody(response);
+      this.logger.error(
+        `Risk API error: GET ${url} status=${response.status} statusText=${response.statusText} body=${errorBody}`,
+      );
       throw new BadRequestException(
         `Unable to fetch risk object: status ${response.status}`,
       );
@@ -335,10 +356,19 @@ export class GetMyIncidentListUseCase {
 
     const responses = await Promise.all(
       ruleIds.map(async (ruleId) => {
+        const url = `${riskServiceUrl}/api/internal/rules/${ruleId}`;
+        this.logger.log(`Risk API request: GET ${url} ruleId=${ruleId}`);
         const response = await fetch(
-          `${riskServiceUrl}/api/internal/rules/${ruleId}`,
+          url,
+        );
+        this.logger.log(
+          `Risk API response: GET ${url} status=${response.status} ruleId=${ruleId}`,
         );
         if (!response.ok) {
+          const errorBody = await this.readErrorBody(response);
+          this.logger.error(
+            `Risk API error: GET ${url} status=${response.status} statusText=${response.statusText} body=${errorBody}`,
+          );
           throw new BadRequestException(
             `Unable to fetch rule ${ruleId}: status ${response.status}`,
           );
@@ -359,12 +389,21 @@ export class GetMyIncidentListUseCase {
       throw new BadRequestException('CMS_RISK_SERVICE_URL is not configured');
     }
 
-    const response = await fetch(`${riskServiceUrl}/api/internal/risk-categories`, {
+    const url = `${riskServiceUrl}/api/internal/risk-categories`;
+    this.logger.log(`Risk API request: GET ${url} CompanyId=${companyId}`);
+    const response = await fetch(url, {
       headers: {
         CompanyId: companyId,
       },
     });
+    this.logger.log(
+      `Risk API response: GET ${url} status=${response.status} CompanyId=${companyId}`,
+    );
     if (!response.ok) {
+      const errorBody = await this.readErrorBody(response);
+      this.logger.error(
+        `Risk API error: GET ${url} status=${response.status} statusText=${response.statusText} body=${errorBody}`,
+      );
       if (response.status === 401 || response.status === 403) {
         throw new UnauthorizedException(
           `Risk service authorization failed with status ${response.status}`,
@@ -387,5 +426,14 @@ export class GetMyIncidentListUseCase {
       grouped.set(key, current);
     }
     return grouped;
+  }
+
+  private async readErrorBody(response: Response): Promise<string> {
+    try {
+      const bodyText = await response.text();
+      return bodyText || '<empty>';
+    } catch (error) {
+      return `<unreadable: ${String(error)}>`;
+    }
   }
 }
