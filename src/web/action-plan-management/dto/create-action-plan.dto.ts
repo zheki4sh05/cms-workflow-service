@@ -18,7 +18,9 @@ export class CreateActionPlanDto {
   @ApiProperty({ example: 'caseId' })
   caseId!: string;
 
-  @ApiProperty({ example: 'План корректирующих действий для случая CS-2024-004' })
+  @ApiProperty({
+    example: 'План корректирующих действий для случая CS-2024-004',
+  })
   title!: string;
 
   @ApiProperty({ example: 'Краткое описание плана/основание' })

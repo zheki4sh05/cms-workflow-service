@@ -42,7 +42,8 @@ export class MinioStorageService {
 
     return {
       stream,
-      contentType: stat.metaData?.['content-type'] || 'application/octet-stream',
+      contentType:
+        stat.metaData?.['content-type'] || 'application/octet-stream',
     };
   }
 

@@ -1,5 +1,10 @@
 import { Controller, Logger } from '@nestjs/common';
-import { Ctx, EventPattern, KafkaContext, Payload } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  KafkaContext,
+  Payload,
+} from '@nestjs/microservices';
 import { IncidentTopicMessage } from '../../../core/incident-management/contracts/incident-topic-message.contract';
 import { IngestIncidentTopicUseCase } from '../../../core/incident-management/use-cases/ingest-incident-topic.use-case';
 import { getRequiredEnv, loadEnvFile } from '../../../web/app/env';
@@ -20,8 +25,7 @@ export class KafkaIncidentTopicConsumer {
     @Payload() payload: IncidentTopicMessage | { value: IncidentTopicMessage },
     @Ctx() context: KafkaContext,
   ) {
-    const normalizedPayload =
-      'value' in payload ? payload.value : (payload as IncidentTopicMessage);
+    const normalizedPayload = 'value' in payload ? payload.value : payload;
     await this.ingestIncidentTopicUseCase.execute(normalizedPayload);
 
     const topic = context.getTopic();

@@ -45,7 +45,9 @@ export class UpdateCaseInvestigationUseCase {
     caseId: string,
     payload: UpdateCaseInvestigationPayload,
   ): Promise<CaseOrmEntity> {
-    const currentCase = await this.caseRepository.findOne({ where: { id: caseId } });
+    const currentCase = await this.caseRepository.findOne({
+      where: { id: caseId },
+    });
     if (!currentCase) {
       throw new HttpException(
         {
@@ -84,14 +86,17 @@ export class UpdateCaseInvestigationUseCase {
       where: { caseId: currentCase.id },
     });
 
-    const investigationRecord = investigation ?? this.investigationRepository.create({
-      id: randomUUID(),
-      caseId: currentCase.id,
-    });
+    const investigationRecord =
+      investigation ??
+      this.investigationRepository.create({
+        id: randomUUID(),
+        caseId: currentCase.id,
+      });
 
     investigationRecord.investigationNotes = payload.investigationNotes;
     investigationRecord.rootCause = payload.rootCause;
-    investigationRecord.requiresCorrectiveAction = payload.requiresCorrectiveAction;
+    investigationRecord.requiresCorrectiveAction =
+      payload.requiresCorrectiveAction;
     await this.investigationRepository.save(investigationRecord);
 
     currentCase.status = 'INVESTIGATING';

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ActionPlanTaskOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
+import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { ActionPlanTaskAccessService } from '../services/action-plan-task-access.service';
 
 interface CompleteTaskPayload {
@@ -16,6 +17,8 @@ export class CompleteTaskUseCase {
     private readonly actionPlanTaskRepository: Repository<ActionPlanTaskOrmEntity>,
     @InjectRepository(CaseOrmEntity)
     private readonly caseRepository: Repository<CaseOrmEntity>,
+    @InjectRepository(IncidentOrmEntity)
+    private readonly incidentRepository: Repository<IncidentOrmEntity>,
     private readonly actionPlanTaskAccessService: ActionPlanTaskAccessService,
   ) {}
 
@@ -55,6 +58,13 @@ export class CompleteTaskUseCase {
   }
 
   private async maybeCloseCase(caseId: string): Promise<void> {
+    const currentCase = await this.caseRepository.findOne({
+      where: { id: caseId },
+    });
+    if (!currentCase) {
+      return;
+    }
+
     const caseTasks = await this.actionPlanTaskRepository
       .createQueryBuilder('task')
       .innerJoin(
@@ -65,8 +75,24 @@ export class CompleteTaskUseCase {
       )
       .getMany();
 
-    if (caseTasks.length > 0 && caseTasks.every((task) => task.status === 'DONE')) {
+    if (
+      caseTasks.length > 0 &&
+      caseTasks.every((task) => task.status === 'DONE')
+    ) {
       await this.caseRepository.update({ id: caseId }, { status: 'CLOSED' });
+
+      const allIncidentCases = await this.caseRepository.find({
+        where: { incidentId: currentCase.incidentId },
+      });
+      if (
+        allIncidentCases.length > 0 &&
+        allIncidentCases.every((item) => item.status === 'CLOSED')
+      ) {
+        await this.incidentRepository.update(
+          { id: currentCase.incidentId },
+          { status: 'RESOLVED', resolvedDate: new Date() },
+        );
+      }
     }
   }
 }

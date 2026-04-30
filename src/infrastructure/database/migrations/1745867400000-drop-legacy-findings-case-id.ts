@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class DropLegacyFindingsCaseId1745867400000
-  implements MigrationInterface
-{
+export class DropLegacyFindingsCaseId1745867400000 implements MigrationInterface {
   name = 'DropLegacyFindingsCaseId1745867400000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

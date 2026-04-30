@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateIncidentCaseFindingTables1745751900000
-  implements MigrationInterface
-{
+export class CreateIncidentCaseFindingTables1745751900000 implements MigrationInterface {
   name = 'CreateIncidentCaseFindingTables1745751900000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

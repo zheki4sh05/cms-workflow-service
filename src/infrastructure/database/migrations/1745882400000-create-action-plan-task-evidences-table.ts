@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateActionPlanTaskEvidencesTable1745882400000
-  implements MigrationInterface
-{
+export class CreateActionPlanTaskEvidencesTable1745882400000 implements MigrationInterface {
   name = 'CreateActionPlanTaskEvidencesTable1745882400000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -21,6 +19,8 @@ export class CreateActionPlanTaskEvidencesTable1745882400000
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS "action_plan_task_evidences"`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "action_plan_task_evidences"`,
+    );
   }
 }

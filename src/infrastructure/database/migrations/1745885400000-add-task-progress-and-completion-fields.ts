@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddTaskProgressAndCompletionFields1745885400000
-  implements MigrationInterface
-{
+export class AddTaskProgressAndCompletionFields1745885400000 implements MigrationInterface {
   name = 'AddTaskProgressAndCompletionFields1745885400000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

@@ -3,7 +3,9 @@ import { ActionPlanTaskAccessService } from '../services/action-plan-task-access
 
 @Injectable()
 export class GetTaskByIdUseCase {
-  constructor(private readonly actionPlanTaskAccessService: ActionPlanTaskAccessService) {}
+  constructor(
+    private readonly actionPlanTaskAccessService: ActionPlanTaskAccessService,
+  ) {}
 
   async execute(taskId: string) {
     const { task, actionPlan, currentCase } =

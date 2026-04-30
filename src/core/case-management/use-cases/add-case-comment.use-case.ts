@@ -30,7 +30,9 @@ export class AddCaseCommentUseCase {
       throw new BadRequestException('content is required');
     }
 
-    const currentCase = await this.caseRepository.findOne({ where: { id: caseId } });
+    const currentCase = await this.caseRepository.findOne({
+      where: { id: caseId },
+    });
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
@@ -40,7 +42,9 @@ export class AddCaseCommentUseCase {
       );
     }
     const user =
-      await this.caseCollaborationAccessService.assertCanCollaborate(currentCase);
+      await this.caseCollaborationAccessService.assertCanCollaborate(
+        currentCase,
+      );
 
     const created = await this.commentRepository.save({
       id: randomUUID(),

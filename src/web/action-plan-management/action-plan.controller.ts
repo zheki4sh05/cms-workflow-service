@@ -52,7 +52,9 @@ export class ActionPlanController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Создает план действий и задачи для выбранного case.' })
+  @ApiOperation({
+    summary: 'Создает план действий и задачи для выбранного case.',
+  })
   @ApiBody({ type: CreateActionPlanDto, required: true })
   @ApiCreatedResponse({ type: CreateActionPlanResponseDto })
   create(@Body() body: CreateActionPlanDto) {
@@ -60,14 +62,19 @@ export class ActionPlanController {
   }
 
   @Post(':planId/submit')
-  @ApiOperation({ summary: 'Отправляет план на верификацию и переводит case в ожидание проверки.' })
+  @ApiOperation({
+    summary:
+      'Отправляет план на верификацию и переводит case в ожидание проверки.',
+  })
   @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
   submit(@Param('planId') planId: string) {
     return this.submitActionPlanUseCase.execute(planId);
   }
 
   @Post(':actionPlanId/tasks/:taskId/evidences')
-  @ApiOperation({ summary: 'Загружает файл-доказательство для задачи плана действий.' })
+  @ApiOperation({
+    summary: 'Загружает файл-доказательство для задачи плана действий.',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -94,7 +101,9 @@ export class ActionPlanController {
   }
 
   @Get(':actionPlanId/tasks/:taskId/evidences')
-  @ApiOperation({ summary: 'Возвращает список файлов-доказательств задачи плана.' })
+  @ApiOperation({
+    summary: 'Возвращает список файлов-доказательств задачи плана.',
+  })
   @ApiOkResponse({ type: TaskEvidenceResponseDto, isArray: true })
   getTaskEvidences(
     @Param('actionPlanId') actionPlanId: string,
@@ -104,7 +113,9 @@ export class ActionPlanController {
   }
 
   @Get(':actionPlanId/tasks/:taskId/evidences/:evidenceId/download')
-  @ApiOperation({ summary: 'Скачивает конкретный файл-доказательство по идентификатору.' })
+  @ApiOperation({
+    summary: 'Скачивает конкретный файл-доказательство по идентификатору.',
+  })
   @Header('Cache-Control', 'no-store')
   @ApiProduces('application/octet-stream')
   @ApiOkResponse({

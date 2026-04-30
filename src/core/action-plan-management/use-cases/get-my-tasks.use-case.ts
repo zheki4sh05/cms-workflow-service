@@ -20,7 +20,9 @@ export class GetMyTasksUseCase {
 
   async execute() {
     const user = await this.actionPlanTaskAccessService.fetchCurrentUser();
-    const assignedUserIds = [user.id, user.employeeId].filter(Boolean) as string[];
+    const assignedUserIds = [user.id, user.employeeId].filter(
+      Boolean,
+    ) as string[];
     if (assignedUserIds.length === 0) {
       return [];
     }
@@ -50,7 +52,9 @@ export class GetMyTasksUseCase {
 
     return tasks.map((task) => {
       const actionPlan = actionPlanById.get(task.actionPlanId);
-      const currentCase = actionPlan ? caseById.get(actionPlan.caseId) : undefined;
+      const currentCase = actionPlan
+        ? caseById.get(actionPlan.caseId)
+        : undefined;
       return {
         id: task.id,
         actionPlanId: task.actionPlanId,

@@ -94,9 +94,12 @@ export class CaseCollaborationAccessService {
       throw new UnauthorizedException('Authorization header is required');
     }
 
-    const response = await fetch(`${authServiceUrl}/api/internal/users/${userId}`, {
-      headers: { authorization },
-    });
+    const response = await fetch(
+      `${authServiceUrl}/api/internal/users/${userId}`,
+      {
+        headers: { authorization },
+      },
+    );
     if (!response.ok) {
       throw new UnauthorizedException('Unable to fetch user roles');
     }

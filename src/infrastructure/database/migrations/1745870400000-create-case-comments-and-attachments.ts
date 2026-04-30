@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateCaseCommentsAndAttachments1745870400000
-  implements MigrationInterface
-{
+export class CreateCaseCommentsAndAttachments1745870400000 implements MigrationInterface {
   name = 'CreateCaseCommentsAndAttachments1745870400000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

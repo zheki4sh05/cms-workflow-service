@@ -9,7 +9,10 @@ export class ActionPlanTaskOrmEntity {
   @PrimaryColumn({ type: 'uuid' })
   id!: string;
 
-  @ManyToOne(() => ActionPlanOrmEntity, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => ActionPlanOrmEntity, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'actionPlanId' })
   actionPlan!: ActionPlanOrmEntity;
 

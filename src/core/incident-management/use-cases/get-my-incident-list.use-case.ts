@@ -11,6 +11,43 @@ import type { Request } from 'express';
 import { In, Repository } from 'typeorm';
 import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
+import { FindingOrmEntity } from '../../../infrastructure/incident-management/persistence/finding.orm-entity';
+
+type Severity = 'low' | 'medium' | 'high';
+
+interface MyIncidentListItem {
+  id: string;
+  riskObjectId: string;
+  riskObjectName: string;
+  incidentDescription: string;
+  status: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  severity: Severity;
+  detectedAt: string | null;
+}
+
+interface RuleDetailsResponse {
+  id: string;
+  name?: string;
+  severity?: string;
+  categoryId?: string | null;
+  category_id?: string | null;
+  detectedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface RiskObjectResponse {
+  id: string;
+  name?: string;
+  severity?: string;
+}
+
+interface RiskCategoryItem {
+  id: string;
+  name: string;
+}
 
 interface AuthUserDto {
   id: string;
@@ -26,9 +63,11 @@ export class GetMyIncidentListUseCase {
     private readonly incidentRepository: Repository<IncidentOrmEntity>,
     @InjectRepository(CaseOrmEntity)
     private readonly caseRepository: Repository<CaseOrmEntity>,
+    @InjectRepository(FindingOrmEntity)
+    private readonly findingRepository: Repository<FindingOrmEntity>,
   ) {}
 
-  async execute(): Promise<IncidentOrmEntity[]> {
+  async execute(): Promise<MyIncidentListItem[]> {
     const user = await this.fetchCurrentUser();
     const assignedUserIds = [user.id, user.employeeId].filter(Boolean);
 
@@ -42,17 +81,85 @@ export class GetMyIncidentListUseCase {
       })),
     });
 
-    const incidentIds = Array.from(new Set(cases.map((item) => item.incidentId)));
+    const incidentIds = Array.from(
+      new Set(cases.map((item) => item.incidentId)),
+    );
     if (incidentIds.length === 0) {
       return [];
     }
 
-    return this.incidentRepository.find({
+    const incidents = await this.incidentRepository.find({
       where: {
         id: In(incidentIds),
         companyId: user.companyId,
       },
     });
+
+    if (incidents.length === 0) {
+      return [];
+    }
+
+    const findings = await this.findingRepository.find({
+      where: {
+        incidentId: In(incidents.map((incident) => incident.id)),
+      },
+    });
+
+    const findingsByIncidentId = this.groupBy(
+      findings,
+      (finding) => finding.incidentId,
+    );
+    const ruleIds = Array.from(
+      new Set(
+        findings
+          .map((finding) => this.extractRuleId(finding.details))
+          .filter((value): value is string => Boolean(value)),
+      ),
+    );
+    const categoryMap = await this.fetchRiskCategories(user.companyId);
+    const ruleMap = await this.fetchRules(ruleIds);
+
+    return Promise.all(
+      incidents.map(async (incident) => {
+        const incidentFindings = findingsByIncidentId.get(incident.id) ?? [];
+        const relatedRules = incidentFindings
+          .map((finding) => {
+            const ruleId = this.extractRuleId(finding.details);
+            if (!ruleId) {
+              return null;
+            }
+            return ruleMap.get(ruleId) ?? null;
+          })
+          .filter((item): item is RuleDetailsResponse => Boolean(item));
+
+        const riskObject = await this.fetchRiskObject(
+          incident.riskObjectId,
+          user.companyId,
+        );
+        const description = this.buildIncidentDescription(relatedRules);
+        const category = this.resolveCategory(relatedRules, categoryMap);
+        const detectedAt = this.resolveDetectedAt(
+          incidentFindings,
+          relatedRules,
+        );
+        const severity = this.resolveIncidentSeverity(
+          relatedRules,
+          riskObject?.severity,
+        );
+
+        return {
+          id: incident.id,
+          riskObjectId: incident.riskObjectId,
+          riskObjectName: riskObject?.name ?? incident.riskObjectId,
+          incidentDescription: description,
+          status: incident.status,
+          categoryId: category?.id ?? null,
+          categoryName: category?.name ?? null,
+          severity,
+          detectedAt,
+        };
+      }),
+    );
   }
 
   private async fetchCurrentUser(): Promise<AuthUserDto> {
@@ -84,5 +191,201 @@ export class GetMyIncidentListUseCase {
       companyId: user.companyId,
       employeeId: user.employeeId ?? '',
     };
+  }
+
+  private buildIncidentDescription(rules: RuleDetailsResponse[]): string {
+    const names = rules
+      .map((rule) => rule.name?.trim())
+      .filter((name): name is string => Boolean(name));
+    return names.length > 0 ? names.join(', ') : 'Не определено';
+  }
+
+  private resolveCategory(
+    rules: RuleDetailsResponse[],
+    categoryMap: Map<string, RiskCategoryItem>,
+  ): RiskCategoryItem | null {
+    for (const rule of rules) {
+      const categoryId = rule.categoryId ?? rule.category_id ?? null;
+      if (categoryId && categoryMap.has(categoryId)) {
+        return categoryMap.get(categoryId)!;
+      }
+    }
+    return null;
+  }
+
+  private resolveDetectedAt(
+    findings: FindingOrmEntity[],
+    rules: RuleDetailsResponse[],
+  ): string | null {
+    const dates = [
+      ...findings
+        .map((finding) => this.extractFoundAt(finding.details))
+        .filter((value): value is string => Boolean(value)),
+      ...rules
+        .map(
+          (rule) => rule.detectedAt ?? rule.createdAt ?? rule.updatedAt ?? null,
+        )
+        .filter((value): value is string => Boolean(value)),
+    ];
+    if (dates.length === 0) {
+      return null;
+    }
+    return dates.sort()[0] ?? null;
+  }
+
+  private resolveIncidentSeverity(
+    rules: RuleDetailsResponse[],
+    riskObjectSeverity?: string,
+  ): Severity {
+    const ruleScores = rules
+      .map((rule) => this.severityToScore(rule.severity))
+      .filter((score): score is number => score !== null);
+
+    const ruleAverageScore =
+      ruleScores.length > 0
+        ? ruleScores.reduce((sum, score) => sum + score, 0) / ruleScores.length
+        : 1;
+    const nearestRuleSeverity = this.scoreToSeverity(
+      Math.round(ruleAverageScore),
+    );
+
+    const riskObjectScore = this.severityToScore(riskObjectSeverity);
+    if (riskObjectScore !== null && riskObjectScore > ruleAverageScore) {
+      return this.scoreToSeverity(riskObjectScore);
+    }
+
+    return nearestRuleSeverity;
+  }
+
+  private severityToScore(value?: string): number | null {
+    if (!value) {
+      return null;
+    }
+    switch (value.toLowerCase()) {
+      case 'low':
+        return 1;
+      case 'medium':
+        return 2;
+      case 'high':
+        return 3;
+      default:
+        return null;
+    }
+  }
+
+  private scoreToSeverity(score: number): Severity {
+    if (score <= 1) {
+      return 'low';
+    }
+    if (score >= 3) {
+      return 'high';
+    }
+    return 'medium';
+  }
+
+  private extractRuleId(details: Record<string, unknown>): string | null {
+    const possibleRuleId =
+      details.rulesId ?? details.ruleId ?? details.rules_id ?? null;
+    return typeof possibleRuleId === 'string' && possibleRuleId.length > 0
+      ? possibleRuleId
+      : null;
+  }
+
+  private extractFoundAt(details: Record<string, unknown>): string | null {
+    const foundAt = details.foundAt;
+    return typeof foundAt === 'string' && foundAt.length > 0 ? foundAt : null;
+  }
+
+  private async fetchRiskObject(
+    riskObjectId: string,
+    companyId: string,
+  ): Promise<RiskObjectResponse | null> {
+    const riskServiceUrl = process.env.CMS_RISK_SERVICE_URL;
+    if (!riskServiceUrl) {
+      throw new BadRequestException('CMS_RISK_SERVICE_URL is not configured');
+    }
+
+    const response = await fetch(
+      `${riskServiceUrl}/api/internal/risk-objects/${riskObjectId}`,
+      {
+        headers: {
+          CompanyId: companyId,
+        },
+      },
+    );
+    if (!response.ok) {
+      throw new BadRequestException(
+        `Unable to fetch risk object: status ${response.status}`,
+      );
+    }
+    return (await response.json()) as RiskObjectResponse;
+  }
+
+  private async fetchRules(
+    ruleIds: string[],
+  ): Promise<Map<string, RuleDetailsResponse>> {
+    if (ruleIds.length === 0) {
+      return new Map();
+    }
+
+    const riskServiceUrl = process.env.CMS_RISK_SERVICE_URL;
+    if (!riskServiceUrl) {
+      throw new BadRequestException('CMS_RISK_SERVICE_URL is not configured');
+    }
+
+    const responses = await Promise.all(
+      ruleIds.map(async (ruleId) => {
+        const response = await fetch(
+          `${riskServiceUrl}/api/internal/rules/${ruleId}`,
+        );
+        if (!response.ok) {
+          throw new BadRequestException(
+            `Unable to fetch rule ${ruleId}: status ${response.status}`,
+          );
+        }
+        const body = (await response.json()) as RuleDetailsResponse;
+        return [ruleId, body] as const;
+      }),
+    );
+
+    return new Map(responses);
+  }
+
+  private async fetchRiskCategories(
+    companyId: string,
+  ): Promise<Map<string, RiskCategoryItem>> {
+    const riskServiceUrl = process.env.CMS_RISK_SERVICE_URL;
+    if (!riskServiceUrl) {
+      throw new BadRequestException('CMS_RISK_SERVICE_URL is not configured');
+    }
+
+    const response = await fetch(`${riskServiceUrl}/api/internal/risk-categories`, {
+      headers: {
+        CompanyId: companyId,
+      },
+    });
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        throw new UnauthorizedException(
+          `Risk service authorization failed with status ${response.status}`,
+        );
+      }
+      throw new BadRequestException(
+        `Unable to fetch risk categories: status ${response.status}`,
+      );
+    }
+    const body = (await response.json()) as { items?: RiskCategoryItem[] };
+    return new Map((body.items ?? []).map((item) => [item.id, item]));
+  }
+
+  private groupBy<T, K>(items: T[], keyResolver: (item: T) => K): Map<K, T[]> {
+    const grouped = new Map<K, T[]>();
+    for (const item of items) {
+      const key = keyResolver(item);
+      const current = grouped.get(key) ?? [];
+      current.push(item);
+      grouped.set(key, current);
+    }
+    return grouped;
   }
 }

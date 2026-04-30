@@ -6,10 +6,14 @@ import { CaseWithInvestigationResponseDto } from '../case-management/dto/case-re
 
 @Controller('api/supervisor/verification')
 export class SupervisorVerificationController {
-  constructor(private readonly approveVerificationUseCase: ApproveVerificationUseCase) {}
+  constructor(
+    private readonly approveVerificationUseCase: ApproveVerificationUseCase,
+  ) {}
 
   @Put(':actionPlanId')
-  @ApiOperation({ summary: 'Подтверждает верификацию плана руководителем или executive.' })
+  @ApiOperation({
+    summary: 'Подтверждает верификацию плана руководителем или executive.',
+  })
   @ApiBody({ type: ApproveVerificationDto, required: true })
   @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
   approve(

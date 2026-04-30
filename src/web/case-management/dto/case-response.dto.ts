@@ -61,7 +61,11 @@ export class CaseWithInvestigationResponseDto {
   @ApiProperty()
   status!: string;
 
-  @ApiProperty({ type: InvestigationInCaseResponseDto, required: false, nullable: true })
+  @ApiProperty({
+    type: InvestigationInCaseResponseDto,
+    required: false,
+    nullable: true,
+  })
   investigation?: InvestigationInCaseResponseDto | null;
 }
 

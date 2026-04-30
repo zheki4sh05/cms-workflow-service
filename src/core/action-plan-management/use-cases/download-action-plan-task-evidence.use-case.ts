@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ActionPlanTaskOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
@@ -65,7 +69,9 @@ export class DownloadActionPlanTaskEvidenceUseCase {
       throw new NotFoundException('Task evidence not found');
     }
 
-    const file = await this.minioStorageService.downloadAttachment(evidence.fileId);
+    const file = await this.minioStorageService.downloadAttachment(
+      evidence.fileId,
+    );
     return {
       stream: file.stream,
       fileName: evidence.name,

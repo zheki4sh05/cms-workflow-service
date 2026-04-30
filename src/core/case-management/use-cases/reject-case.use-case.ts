@@ -31,7 +31,9 @@ export class RejectCaseUseCase {
       throw new BadRequestException('comment is required');
     }
 
-    const currentCase = await this.caseRepository.findOne({ where: { id: caseId } });
+    const currentCase = await this.caseRepository.findOne({
+      where: { id: caseId },
+    });
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
@@ -72,8 +74,11 @@ export class RejectCaseUseCase {
 
     if (allIncidentCases.length === 1) {
       incident.status = 'RESOLVED';
+      incident.resolvedDate = new Date();
     } else {
-      const otherCases = allIncidentCases.filter((item) => item.id !== currentCase.id);
+      const otherCases = allIncidentCases.filter(
+        (item) => item.id !== currentCase.id,
+      );
       const nonRejectedOtherCases = otherCases.filter(
         (item) => item.status !== 'REJECTED',
       );
@@ -87,6 +92,7 @@ export class RejectCaseUseCase {
         incident.status = 'IN_PROGRESS';
       } else {
         incident.status = 'RESOLVED';
+        incident.resolvedDate = new Date();
       }
     }
 

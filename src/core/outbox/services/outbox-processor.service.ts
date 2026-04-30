@@ -1,8 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import {
-  OUTBOX_REPOSITORY,
-} from '../ports/outbox.repository.port';
+import { OUTBOX_REPOSITORY } from '../ports/outbox.repository.port';
 import type { OutboxRepositoryPort } from '../ports/outbox.repository.port';
 import { IncidentResolverService } from '../../incident-management/services/incident-resolver.service';
 import { getNumberEnvOrDefault, loadEnvFile } from '../../../web/app/env';
@@ -34,9 +32,7 @@ export class OutboxProcessorService {
       `Outbox scheduler started: cron=${OUTBOX_RESOLVER_CRON}, intervalMinutes=${OUTBOX_RESOLVER_INTERVAL_MINUTES}`,
     );
     const statusStats = await this.outboxRepository.getStatusStats();
-    this.logger.log(
-      `Outbox status stats: ${JSON.stringify(statusStats)}`,
-    );
+    this.logger.log(`Outbox status stats: ${JSON.stringify(statusStats)}`);
     const pendingMessages = await this.outboxRepository.getPending(100);
     this.logger.log(
       `Outbox scheduler fetched pending messages: count=${pendingMessages.length}`,

@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  INVESTIGATION_REPOSITORY,
-} from '../ports/investigation.repository.port';
+import { INVESTIGATION_REPOSITORY } from '../ports/investigation.repository.port';
 import type { InvestigationRepositoryPort } from '../ports/investigation.repository.port';
 
 @Injectable()

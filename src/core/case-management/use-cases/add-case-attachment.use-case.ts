@@ -33,7 +33,9 @@ export class AddCaseAttachmentUseCase {
       throw new BadRequestException('file is required');
     }
 
-    const currentCase = await this.caseRepository.findOne({ where: { id: caseId } });
+    const currentCase = await this.caseRepository.findOne({
+      where: { id: caseId },
+    });
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
@@ -43,7 +45,9 @@ export class AddCaseAttachmentUseCase {
       );
     }
     const user =
-      await this.caseCollaborationAccessService.assertCanCollaborate(currentCase);
+      await this.caseCollaborationAccessService.assertCanCollaborate(
+        currentCase,
+      );
     const fileId = await this.minioStorageService.uploadCaseAttachment(file);
     const name = file.originalname?.trim() || fileId;
 

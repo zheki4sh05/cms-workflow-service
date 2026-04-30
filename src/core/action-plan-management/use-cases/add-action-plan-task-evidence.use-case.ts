@@ -71,7 +71,9 @@ export class AddActionPlanTaskEvidenceUseCase {
     }
 
     const user =
-      await this.caseCollaborationAccessService.assertCanCollaborate(currentCase);
+      await this.caseCollaborationAccessService.assertCanCollaborate(
+        currentCase,
+      );
     const fileId = await this.minioStorageService.uploadCaseAttachment(file);
     const name = file.originalname?.trim() || fileId;
 

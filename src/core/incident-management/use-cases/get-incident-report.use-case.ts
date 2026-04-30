@@ -38,7 +38,9 @@ export class GetIncidentReportUseCase {
   ) {}
 
   async execute(incidentId: string) {
-    const incident = await this.incidentRepository.findOne({ where: { id: incidentId } });
+    const incident = await this.incidentRepository.findOne({
+      where: { id: incidentId },
+    });
     if (!incident) {
       throw new NotFoundException('Incident not found');
     }
@@ -104,13 +106,29 @@ export class GetIncidentReportUseCase {
         })
       : [];
 
-    const investigationsByCaseId = new Map(investigations.map((item) => [item.caseId, item]));
+    const investigationsByCaseId = new Map(
+      investigations.map((item) => [item.caseId, item]),
+    );
     const commentsByCaseId = this.groupBy(caseComments, (item) => item.caseId);
-    const attachmentsByCaseId = this.groupBy(caseAttachments, (item) => item.caseId);
-    const actionPlansByCaseId = this.groupBy(actionPlans, (item) => item.caseId);
-    const tasksByActionPlanId = this.groupBy(tasks, (item) => item.actionPlanId);
-    const verificationByActionPlanId = new Map(verifications.map((item) => [item.actionPlanId, item]));
-    const evidencesByTaskId = this.groupBy(taskEvidences, (item) => item.taskId);
+    const attachmentsByCaseId = this.groupBy(
+      caseAttachments,
+      (item) => item.caseId,
+    );
+    const actionPlansByCaseId = this.groupBy(
+      actionPlans,
+      (item) => item.caseId,
+    );
+    const tasksByActionPlanId = this.groupBy(
+      tasks,
+      (item) => item.actionPlanId,
+    );
+    const verificationByActionPlanId = new Map(
+      verifications.map((item) => [item.actionPlanId, item]),
+    );
+    const evidencesByTaskId = this.groupBy(
+      taskEvidences,
+      (item) => item.taskId,
+    );
     const casesByFindingId = this.groupBy(cases, (item) => item.findingId);
 
     return {
@@ -135,20 +153,26 @@ export class GetIncidentReportUseCase {
             findingId: currentCase.findingId,
             assignedUserId: currentCase.assignedUserId,
             status: currentCase.status,
-            investigation: this.mapInvestigation(investigationsByCaseId.get(currentCase.id)),
-            comments: (commentsByCaseId.get(currentCase.id) ?? []).map((comment) => ({
-              id: comment.id,
-              userId: comment.userId,
-              comment: comment.comment,
-              time: comment.time,
-            })),
-            attachments: (attachmentsByCaseId.get(currentCase.id) ?? []).map((attachment) => ({
-              id: attachment.id,
-              userId: attachment.userId,
-              fileId: attachment.fileId,
-              name: attachment.name,
-              time: attachment.time,
-            })),
+            investigation: this.mapInvestigation(
+              investigationsByCaseId.get(currentCase.id),
+            ),
+            comments: (commentsByCaseId.get(currentCase.id) ?? []).map(
+              (comment) => ({
+                id: comment.id,
+                userId: comment.userId,
+                comment: comment.comment,
+                time: comment.time,
+              }),
+            ),
+            attachments: (attachmentsByCaseId.get(currentCase.id) ?? []).map(
+              (attachment) => ({
+                id: attachment.id,
+                userId: attachment.userId,
+                fileId: attachment.fileId,
+                name: attachment.name,
+                time: attachment.time,
+              }),
+            ),
             actionPlan: actionPlan
               ? {
                   id: actionPlan.id,
@@ -160,24 +184,29 @@ export class GetIncidentReportUseCase {
                   verification: this.mapVerification(
                     verificationByActionPlanId.get(actionPlan.id),
                   ),
-                  tasks: (tasksByActionPlanId.get(actionPlan.id) ?? []).map((task) => ({
-                    id: task.id,
-                    title: task.title,
-                    description: task.description,
-                    priority: task.priority,
-                    dueDate: task.dueDate,
-                    status: task.status,
-                    evidenceDescriptionInprogress: task.evidenceDescriptionInprogress,
-                    evidenceDescriptionDone: task.evidenceDescriptionDone,
-                    completedAt: task.completedAt,
-                    evidences: (evidencesByTaskId.get(task.id) ?? []).map((evidence) => ({
-                      id: evidence.id,
-                      userId: evidence.userId,
-                      fileId: evidence.fileId,
-                      name: evidence.name,
-                      time: evidence.time,
-                    })),
-                  })),
+                  tasks: (tasksByActionPlanId.get(actionPlan.id) ?? []).map(
+                    (task) => ({
+                      id: task.id,
+                      title: task.title,
+                      description: task.description,
+                      priority: task.priority,
+                      dueDate: task.dueDate,
+                      status: task.status,
+                      evidenceDescriptionInprogress:
+                        task.evidenceDescriptionInprogress,
+                      evidenceDescriptionDone: task.evidenceDescriptionDone,
+                      completedAt: task.completedAt,
+                      evidences: (evidencesByTaskId.get(task.id) ?? []).map(
+                        (evidence) => ({
+                          id: evidence.id,
+                          userId: evidence.userId,
+                          fileId: evidence.fileId,
+                          name: evidence.name,
+                          time: evidence.time,
+                        }),
+                      ),
+                    }),
+                  ),
                 }
               : null,
           };
@@ -224,7 +253,8 @@ export class GetIncidentReportUseCase {
       actionPlanId: verification.actionPlanId,
       verified: verification.verified,
       assignedUserForVerification: verification.assignedUserForVerification,
-      assignedEmployeeForVerification: verification.assignedEmployeeForVerification,
+      assignedEmployeeForVerification:
+        verification.assignedEmployeeForVerification,
       comments: verification.comments,
     };
   }

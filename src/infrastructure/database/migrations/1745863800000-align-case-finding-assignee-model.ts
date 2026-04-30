@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignCaseFindingAssigneeModel1745863800000
-  implements MigrationInterface
-{
+export class AlignCaseFindingAssigneeModel1745863800000 implements MigrationInterface {
   name = 'AlignCaseFindingAssigneeModel1745863800000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

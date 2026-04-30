@@ -4,7 +4,7 @@ import { GetMyIncidentListUseCase } from '../../core/incident-management/use-cas
 import { GetIncidentReportUseCase } from '../../core/incident-management/use-cases/get-incident-report.use-case';
 import {
   IncidentReportResponseDto,
-  IncidentResponseDto,
+  MyIncidentResponseDto,
 } from './dto/incident-response.dto';
 
 @Controller('api/incidents')
@@ -15,17 +15,20 @@ export class IncidentController {
   ) {}
 
   @Get('my')
-  @ApiOperation({ summary: 'Возвращает инциденты, доступные текущему пользователю.' })
-  @ApiOkResponse({ type: IncidentResponseDto, isArray: true })
-  findMy() {
+  @ApiOperation({
+    summary: 'Возвращает инциденты, доступные текущему пользователю.',
+  })
+  @ApiOkResponse({ type: MyIncidentResponseDto, isArray: true })
+  findMy(): Promise<MyIncidentResponseDto[]> {
     return this.getMyIncidentListUseCase.execute();
   }
 
   @Get(':incidentId/report')
-  @ApiOperation({ summary: 'Возвращает полный отчет по инциденту и связанным сущностям.' })
+  @ApiOperation({
+    summary: 'Возвращает полный отчет по инциденту и связанным сущностям.',
+  })
   @ApiOkResponse({ type: IncidentReportResponseDto })
   getReport(@Param('incidentId') incidentId: string) {
     return this.getIncidentReportUseCase.execute(incidentId);
   }
-
 }

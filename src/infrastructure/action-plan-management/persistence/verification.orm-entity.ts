@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, Unique } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  Unique,
+} from 'typeorm';
 import { ActionPlanOrmEntity } from './action-plan.orm-entity';
 
 @Entity({ name: 'verifications' })
@@ -7,7 +14,10 @@ export class VerificationOrmEntity {
   @PrimaryColumn({ type: 'uuid' })
   id!: string;
 
-  @ManyToOne(() => ActionPlanOrmEntity, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => ActionPlanOrmEntity, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'actionPlanId' })
   actionPlan!: ActionPlanOrmEntity;
 

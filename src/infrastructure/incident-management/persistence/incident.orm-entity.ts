@@ -25,4 +25,7 @@ export class IncidentOrmEntity {
 
   @Column({ type: 'varchar', length: 20 })
   status!: IncidentStatus;
+
+  @Column({ name: 'resolved_date', type: 'timestamp', nullable: true })
+  resolvedDate!: Date | null;
 }

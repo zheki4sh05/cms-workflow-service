@@ -67,14 +67,18 @@ export class CaseController {
   }
 
   @Put(':caseId/reopen')
-  @ApiOperation({ summary: 'Открывает ранее отклоненный case для повторной обработки.' })
+  @ApiOperation({
+    summary: 'Открывает ранее отклоненный case для повторной обработки.',
+  })
   @ApiOkResponse({ type: CaseStateResponseDto })
   reopen(@Param('caseId') caseId: string) {
     return this.reopenCaseUseCase.execute(caseId);
   }
 
   @Patch(':caseId/investigation')
-  @ApiOperation({ summary: 'Обновляет результаты расследования по выбранному case.' })
+  @ApiOperation({
+    summary: 'Обновляет результаты расследования по выбранному case.',
+  })
   @ApiBody({ type: UpdateCaseInvestigationDto, required: true })
   @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
   updateInvestigation(
@@ -85,7 +89,9 @@ export class CaseController {
   }
 
   @Get(':caseId/comments')
-  @ApiOperation({ summary: 'Возвращает комментарии, связанные с выбранным case.' })
+  @ApiOperation({
+    summary: 'Возвращает комментарии, связанные с выбранным case.',
+  })
   @ApiOkResponse({ type: CaseCommentResponseDto, isArray: true })
   getComments(@Param('caseId') caseId: string) {
     return this.getCaseCommentsUseCase.execute(caseId);
@@ -103,7 +109,9 @@ export class CaseController {
   }
 
   @Get(':caseId/attachments')
-  @ApiOperation({ summary: 'Возвращает список файлов-вложений выбранного case.' })
+  @ApiOperation({
+    summary: 'Возвращает список файлов-вложений выбранного case.',
+  })
   @ApiOkResponse({ type: CaseAttachmentResponseDto, isArray: true })
   getAttachments(@Param('caseId') caseId: string) {
     return this.getCaseAttachmentsUseCase.execute(caseId);
@@ -126,7 +134,10 @@ export class CaseController {
   })
   @UseInterceptors(FileInterceptor('file'))
   @ApiCreatedResponse({ type: CaseAttachmentResponseDto })
-  addAttachment(@Param('caseId') caseId: string, @UploadedFile() file?: UploadedBinaryFile) {
+  addAttachment(
+    @Param('caseId') caseId: string,
+    @UploadedFile() file?: UploadedBinaryFile,
+  ) {
     return this.addCaseAttachmentUseCase.execute(caseId, { file });
   }
 }

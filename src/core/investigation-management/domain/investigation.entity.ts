@@ -1,4 +1,8 @@
-export type InvestigationStatus = 'not_started' | 'in_progress' | 'verified' | 'closed';
+export type InvestigationStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'verified'
+  | 'closed';
 
 export interface InvestigationEntity {
   id: string;

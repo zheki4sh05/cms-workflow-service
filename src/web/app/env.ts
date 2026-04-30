@@ -58,7 +58,10 @@ export function getRequiredNumberEnv(name: string): number {
   return parsed;
 }
 
-export function getNumberEnvOrDefault(name: string, defaultValue: number): number {
+export function getNumberEnvOrDefault(
+  name: string,
+  defaultValue: number,
+): number {
   const value = process.env[name];
   if (value === undefined || !value.trim()) {
     return defaultValue;

@@ -140,9 +140,12 @@ export class SubmitActionPlanUseCase {
       throw new UnauthorizedException('Authorization header is required');
     }
 
-    const response = await fetch(`${authServiceUrl}/api/internal/users/${userId}`, {
-      headers: { authorization },
-    });
+    const response = await fetch(
+      `${authServiceUrl}/api/internal/users/${userId}`,
+      {
+        headers: { authorization },
+      },
+    );
     if (!response.ok) {
       throw new UnauthorizedException('Unable to fetch user roles');
     }
@@ -167,7 +170,9 @@ export class SubmitActionPlanUseCase {
   }): Promise<DepartmentManagerDto> {
     const companyInfoServiceUrl = process.env.CMS_COMPANY_INFO_SERVICE_URL;
     if (!companyInfoServiceUrl) {
-      throw new BadRequestException('CMS_COMPANY_INFO_SERVICE_URL is not configured');
+      throw new BadRequestException(
+        'CMS_COMPANY_INFO_SERVICE_URL is not configured',
+      );
     }
 
     const authorization = this.request.headers.authorization;

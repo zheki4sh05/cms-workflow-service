@@ -24,7 +24,10 @@ import { AddTaskEvidenceUseCase } from '../../core/action-plan-management/use-ca
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CompleteTaskDto } from './dto/complete-task.dto';
 import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
-import { TaskEvidenceResponseDto, TaskResponseDto } from './dto/action-plan-response.dto';
+import {
+  TaskEvidenceResponseDto,
+  TaskResponseDto,
+} from './dto/action-plan-response.dto';
 
 @Controller('api/tasks')
 export class TaskController {
@@ -83,7 +86,10 @@ export class TaskController {
   })
   @UseInterceptors(FileInterceptor('file'))
   @ApiCreatedResponse({ type: TaskEvidenceResponseDto })
-  addEvidence(@Param('taskId') taskId: string, @UploadedFile() file?: UploadedBinaryFile) {
+  addEvidence(
+    @Param('taskId') taskId: string,
+    @UploadedFile() file?: UploadedBinaryFile,
+  ) {
     return this.addTaskEvidenceUseCase.execute(taskId, { file });
   }
 }

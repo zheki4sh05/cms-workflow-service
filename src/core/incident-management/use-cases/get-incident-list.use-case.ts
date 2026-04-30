@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  INCIDENT_REPOSITORY,
-} from '../ports/incident.repository.port';
+import { INCIDENT_REPOSITORY } from '../ports/incident.repository.port';
 import type { IncidentRepositoryPort } from '../ports/incident.repository.port';
 
 @Injectable()

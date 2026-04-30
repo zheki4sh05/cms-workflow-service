@@ -23,7 +23,11 @@ export type CaseStatus =
   | 'CLOSED';
 
 @Entity({ name: 'cases' })
-@Unique('uq_cases_incident_assignee', ['incidentId', 'findingId', 'assignedUserId'])
+@Unique('uq_cases_incident_assignee', [
+  'incidentId',
+  'findingId',
+  'assignedUserId',
+])
 export class CaseOrmEntity {
   @PrimaryColumn({ type: 'uuid' })
   id!: string;

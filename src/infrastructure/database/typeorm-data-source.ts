@@ -1,6 +1,10 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { loadEnvFile, getRequiredEnv, getRequiredNumberEnv } from '../../web/app/env';
+import {
+  loadEnvFile,
+  getRequiredEnv,
+  getRequiredNumberEnv,
+} from '../../web/app/env';
 import { OutboxMessageOrmEntity } from '../outbox/persistence/outbox-message.orm-entity';
 import { IncidentOrmEntity } from '../incident-management/persistence/incident.orm-entity';
 import { CaseOrmEntity } from '../case-management/persistence/case.orm-entity';

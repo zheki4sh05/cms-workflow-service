@@ -20,6 +20,39 @@ export class IncidentResponseDto {
   status!: string;
 }
 
+export class MyIncidentResponseDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  riskObjectId!: string;
+
+  @ApiProperty()
+  riskObjectName!: string;
+
+  @ApiProperty()
+  incidentDescription!: string;
+
+  @ApiProperty()
+  status!: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  categoryId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  categoryName!: string | null;
+
+  @ApiProperty({ enum: ['low', 'medium', 'high'] })
+  severity!: 'low' | 'medium' | 'high';
+
+  @ApiProperty({
+    description: 'Дата первого обнаруженного правила в формате ISO',
+    required: false,
+    nullable: true,
+  })
+  detectedAt!: string | null;
+}
+
 export class InvestigationReportDto {
   @ApiProperty()
   id!: string;
@@ -185,7 +218,11 @@ export class CaseReportDto {
   @ApiProperty()
   status!: string;
 
-  @ApiProperty({ type: InvestigationReportDto, required: false, nullable: true })
+  @ApiProperty({
+    type: InvestigationReportDto,
+    required: false,
+    nullable: true,
+  })
   investigation!: InvestigationReportDto | null;
 
   @ApiProperty({ type: CaseCommentReportDto, isArray: true })

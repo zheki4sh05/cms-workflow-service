@@ -64,7 +64,9 @@ export class ActionPlanTaskAccessService {
     actionPlan: ActionPlanOrmEntity;
     currentCase: CaseOrmEntity;
   }> {
-    const task = await this.actionPlanTaskRepository.findOne({ where: { id: taskId } });
+    const task = await this.actionPlanTaskRepository.findOne({
+      where: { id: taskId },
+    });
     if (!task) {
       throw new NotFoundException('Task not found');
     }

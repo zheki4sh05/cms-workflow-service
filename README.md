@@ -31,6 +31,29 @@ Target architecture for Workflow Service (incidents, investigations, action plan
 
 - [Architecture blueprint](./docs/architecture.md)
 
+## Statuses
+
+### Incident statuses
+
+- `OPEN` - incident is created and waiting for processing.
+- `PARTLY_PROGRESS` - at least one related case is still at assignment stage while others may already be in work.
+- `IN_PROGRESS` - related active cases are in investigation/workflow process.
+- `RESOLVED` - incident is resolved.
+
+When incident transitions to `RESOLVED`, the `incident.resolved_date` column is set to transition timestamp.
+
+### Case statuses
+
+- `ASSIGNED` - case is assigned to a responsible user.
+- `OPEN` - case is open.
+- `INVESTIGATING` - investigation is in progress.
+- `ACTION_PLAN` - action plan stage.
+- `WAITING_VERIFICATION` - action plan submitted and waiting for verification.
+- `ACTION_IN_PROGRESS` - verified action plan is being executed.
+- `IN_PROGRESS` - case is in progress.
+- `REJECTED` - case is rejected.
+- `CLOSED` - case is completed and closed.
+
 ## Kafka incident intake and outbox
 
 - Consumer subscribes to Kafka topic `incident_topic` via Nest microservice transport.

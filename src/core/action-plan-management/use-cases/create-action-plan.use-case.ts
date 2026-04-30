@@ -53,13 +53,17 @@ export class CreateActionPlanUseCase {
     const tasks = payload.tasks ?? [];
 
     if (!caseId || !title || !description) {
-      throw new BadRequestException('caseId, title and description are required');
+      throw new BadRequestException(
+        'caseId, title and description are required',
+      );
     }
     if (!Array.isArray(tasks) || tasks.length === 0) {
       throw new BadRequestException('tasks must contain at least one task');
     }
 
-    const currentCase = await this.caseRepository.findOne({ where: { id: caseId } });
+    const currentCase = await this.caseRepository.findOne({
+      where: { id: caseId },
+    });
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
@@ -74,14 +78,18 @@ export class CreateActionPlanUseCase {
     const validatedTasks = tasks.map((task, index) => {
       const taskTitle = task.title?.trim();
       const taskDescription = task.description?.trim();
-      const priority = task.priority?.trim() as ActionPlanTaskPriority | undefined;
+      const priority = task.priority?.trim() as
+        | ActionPlanTaskPriority
+        | undefined;
       const dueDateRaw = task.dueDate?.trim();
 
       if (!taskTitle || !taskDescription || !priority || !dueDateRaw) {
         throw new BadRequestException(`Task #${index + 1} has invalid payload`);
       }
       if (!ALLOWED_PRIORITIES.includes(priority)) {
-        throw new BadRequestException(`Task #${index + 1} has invalid priority`);
+        throw new BadRequestException(
+          `Task #${index + 1} has invalid priority`,
+        );
       }
       const dueDateValue = new Date(dueDateRaw);
       if (Number.isNaN(dueDateValue.getTime())) {

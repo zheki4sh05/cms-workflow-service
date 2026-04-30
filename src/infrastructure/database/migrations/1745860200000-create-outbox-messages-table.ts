@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateOutboxMessagesTable1745860200000
-  implements MigrationInterface
-{
+export class CreateOutboxMessagesTable1745860200000 implements MigrationInterface {
   name = 'CreateOutboxMessagesTable1745860200000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

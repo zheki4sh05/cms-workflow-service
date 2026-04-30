@@ -1,9 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { IncidentTopicMessage } from '../contracts/incident-topic-message.contract';
-import {
-  OUTBOX_REPOSITORY,
-} from '../../outbox/ports/outbox.repository.port';
+import { OUTBOX_REPOSITORY } from '../../outbox/ports/outbox.repository.port';
 import type { OutboxRepositoryPort } from '../../outbox/ports/outbox.repository.port';
 
 @Injectable()
@@ -16,7 +14,11 @@ export class IngestIncidentTopicUseCase {
   ) {}
 
   async execute(message: IncidentTopicMessage): Promise<void> {
-    if (!message?.companyId || !message?.riskObjectId || !Array.isArray(message?.rules)) {
+    if (
+      !message?.companyId ||
+      !message?.riskObjectId ||
+      !Array.isArray(message?.rules)
+    ) {
       this.logger.warn('Incident topic message ignored due to invalid payload');
       return;
     }

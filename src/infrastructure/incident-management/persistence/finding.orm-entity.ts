@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
+} from 'typeorm';
 import { IncidentOrmEntity } from './incident.orm-entity';
 import { CaseOrmEntity } from '../../case-management/persistence/case.orm-entity';
 

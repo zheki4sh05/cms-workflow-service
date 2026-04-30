@@ -59,17 +59,23 @@ export class IncidentResolverService {
         await manager.save(FindingOrmEntity, {
           id: findingId,
           priority: rule.rulePriority,
-          assignedUserId: assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
-          details:
-            rule.details ??
-            ((rule as { detaild?: Record<string, unknown> }).detaild ?? {}),
+          assignedUserId:
+            assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
+          details: {
+            ...(rule.details ??
+              (rule as { detaild?: Record<string, unknown> }).detaild ??
+              {}),
+            rulesId: rule.rulesId,
+            foundAt: new Date().toISOString(),
+          },
           incidentId,
         });
 
         await manager.save(CaseOrmEntity, {
           id: randomUUID(),
           incidentId,
-          assignedUserId: assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
+          assignedUserId:
+            assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
           status: 'ASSIGNED',
           findingId,
         });

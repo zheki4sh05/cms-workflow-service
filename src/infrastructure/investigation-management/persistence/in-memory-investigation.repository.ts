@@ -3,9 +3,7 @@ import { InvestigationRepositoryPort } from '../../../core/investigation-managem
 import { InvestigationEntity } from '../../../core/investigation-management/domain/investigation.entity';
 
 @Injectable()
-export class InMemoryInvestigationRepository
-  implements InvestigationRepositoryPort
-{
+export class InMemoryInvestigationRepository implements InvestigationRepositoryPort {
   private readonly investigations = new Map<string, InvestigationEntity>();
 
   async save(investigation: InvestigationEntity): Promise<void> {

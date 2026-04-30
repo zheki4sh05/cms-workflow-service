@@ -24,6 +24,7 @@ import { ActionPlanTaskEvidenceOrmEntity } from '../../infrastructure/action-pla
 import { CaseManagementModule } from '../case-management/case-management.module';
 import { TaskController } from './task.controller';
 import { ActionPlanTaskAccessService } from '../../core/action-plan-management/services/action-plan-task-access.service';
+import { IncidentOrmEntity } from '../../infrastructure/incident-management/persistence/incident.orm-entity';
 
 @Module({
   imports: [
@@ -32,11 +33,16 @@ import { ActionPlanTaskAccessService } from '../../core/action-plan-management/s
       ActionPlanOrmEntity,
       ActionPlanTaskOrmEntity,
       CaseOrmEntity,
+      IncidentOrmEntity,
       VerificationOrmEntity,
       ActionPlanTaskEvidenceOrmEntity,
     ]),
   ],
-  controllers: [ActionPlanController, SupervisorVerificationController, TaskController],
+  controllers: [
+    ActionPlanController,
+    SupervisorVerificationController,
+    TaskController,
+  ],
   providers: [
     GetActionPlanListUseCase,
     CreateActionPlanUseCase,

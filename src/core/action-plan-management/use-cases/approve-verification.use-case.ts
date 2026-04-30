@@ -40,7 +40,10 @@ export class ApproveVerificationUseCase {
     private readonly caseRepository: Repository<CaseOrmEntity>,
   ) {}
 
-  async execute(actionPlanId: string, payload: ApproveVerificationPayload): Promise<CaseOrmEntity> {
+  async execute(
+    actionPlanId: string,
+    payload: ApproveVerificationPayload,
+  ): Promise<CaseOrmEntity> {
     if (payload.approved !== true) {
       throw new BadRequestException('Only approved=true is supported');
     }
@@ -134,9 +137,12 @@ export class ApproveVerificationUseCase {
       throw new UnauthorizedException('Authorization header is required');
     }
 
-    const response = await fetch(`${authServiceUrl}/api/internal/users/${userId}`, {
-      headers: { authorization },
-    });
+    const response = await fetch(
+      `${authServiceUrl}/api/internal/users/${userId}`,
+      {
+        headers: { authorization },
+      },
+    );
     if (!response.ok) {
       throw new UnauthorizedException('Unable to fetch user roles');
     }
