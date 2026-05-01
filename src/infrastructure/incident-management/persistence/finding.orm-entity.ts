@@ -26,6 +26,9 @@ export class FindingOrmEntity {
   @Column({ type: 'timestamptz', nullable: true })
   detectedAt!: Date | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  deadline!: Date | null;
+
   @Column({ type: 'jsonb' })
   details!: Record<string, unknown>;
 

@@ -8,11 +8,15 @@ import { AddCaseAttachmentUseCase } from '../../core/case-management/use-cases/a
 import { GetCaseCommentsUseCase } from '../../core/case-management/use-cases/get-case-comments.use-case';
 import { GetCaseAttachmentsUseCase } from '../../core/case-management/use-cases/get-case-attachments.use-case';
 import { UpdateCaseInvestigationUseCase } from '../../core/case-management/use-cases/update-case-investigation.use-case';
+import { GetMyCaseListUseCase } from '../../core/case-management/use-cases/get-my-case-list.use-case';
+import { GetCaseViewListUseCase } from '../../core/case-management/use-cases/get-case-view-list.use-case';
 import { CASE_REPOSITORY } from '../../core/case-management/ports/case.repository.port';
 import { InMemoryCaseRepository } from '../../infrastructure/case-management/persistence/in-memory-case.repository';
 import { CaseController } from './case.controller';
+import { CaseV1Controller } from './case-v1.controller';
 import { CaseOrmEntity } from '../../infrastructure/case-management/persistence/case.orm-entity';
 import { IncidentOrmEntity } from '../../infrastructure/incident-management/persistence/incident.orm-entity';
+import { FindingOrmEntity } from '../../infrastructure/incident-management/persistence/finding.orm-entity';
 import { ActionPlanOrmEntity } from '../../infrastructure/action-plan-management/persistence/action-plan.orm-entity';
 import { CaseCommentOrmEntity } from '../../infrastructure/case-management/persistence/case-comment.orm-entity';
 import { CaseAttachmentOrmEntity } from '../../infrastructure/case-management/persistence/case-attachment.orm-entity';
@@ -25,13 +29,14 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
     TypeOrmModule.forFeature([
       CaseOrmEntity,
       IncidentOrmEntity,
+      FindingOrmEntity,
       ActionPlanOrmEntity,
       CaseCommentOrmEntity,
       CaseAttachmentOrmEntity,
       InvestigationOrmEntity,
     ]),
   ],
-  controllers: [CaseController],
+  controllers: [CaseController, CaseV1Controller],
   providers: [
     GetCaseListUseCase,
     RejectCaseUseCase,
@@ -41,6 +46,8 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
     AddCaseAttachmentUseCase,
     GetCaseAttachmentsUseCase,
     UpdateCaseInvestigationUseCase,
+    GetMyCaseListUseCase,
+    GetCaseViewListUseCase,
     CaseCollaborationAccessService,
     MinioStorageService,
     InMemoryCaseRepository,

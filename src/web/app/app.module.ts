@@ -23,6 +23,7 @@ import { FixTaskStatusInProgress1745886600000 } from '../../infrastructure/datab
 import { AddResolvedDateToIncident1745887800000 } from '../../infrastructure/database/migrations/1745887800000-add-resolved-date-to-incident';
 import { AddRulesIdToFindings1746113400000 } from '../../infrastructure/database/migrations/1746113400000-add-rules-id-to-findings';
 import { AddDetectedAtToFindings1746117060000 } from '../../infrastructure/database/migrations/1746117060000-add-detected-at-to-findings';
+import { AddDeadlineToFindings1746132000000 } from '../../infrastructure/database/migrations/1746132000000-add-deadline-to-findings';
 import { CaseManagementModule } from '../case-management/case-management.module';
 import { ActionPlanManagementModule } from '../action-plan-management/action-plan-management.module';
 
@@ -57,6 +58,7 @@ loadEnvFile();
         AddResolvedDateToIncident1745887800000,
         AddRulesIdToFindings1746113400000,
         AddDetectedAtToFindings1746117060000,
+        AddDeadlineToFindings1746132000000,
       ],
       migrationsRun: process.env.DB_RUN_MIGRATIONS === 'true',
       entities: [OutboxMessageOrmEntity],

@@ -5,6 +5,7 @@ import { GetIncidentReportUseCase } from '../../core/incident-management/use-cas
 import { AssignIncidentToMeUseCase } from '../../core/incident-management/use-cases/assign-incident-to-me.use-case';
 import { GetIncidentViewUseCase } from '../../core/incident-management/use-cases/get-incident-view.use-case';
 import {
+  AssignIncidentCaseResponseDto,
   IncidentReportResponseDto,
   IncidentViewResponseDto,
   MyIncidentResponseDto,
@@ -48,6 +49,10 @@ export class IncidentController {
   }
 
   @Post(':incidentId/assign-to-me')
+  @ApiOperation({
+    summary: 'Назначает инцидент текущему пользователю и создает case в статусе ASSIGNED.',
+  })
+  @ApiOkResponse({ type: AssignIncidentCaseResponseDto })
   assignToMe(@Param('incidentId') incidentId: string) {
     return this.assignIncidentToMeUseCase.execute(incidentId);
   }

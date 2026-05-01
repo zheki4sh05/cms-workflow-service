@@ -296,3 +296,27 @@ export class IncidentViewResponseDto {
   @ApiProperty({ required: false, nullable: true })
   integrationName!: string | null;
 }
+
+export class AssignIncidentCaseResponseDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  incidentId!: string;
+
+  @ApiProperty()
+  findingId!: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  assignedUserId!: string | null;
+
+  @ApiProperty()
+  status!: string;
+
+  @ApiProperty({
+    type: InvestigationReportDto,
+    required: false,
+    nullable: true,
+  })
+  investigation!: InvestigationReportDto | null;
+}
