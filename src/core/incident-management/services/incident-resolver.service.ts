@@ -3,7 +3,6 @@ import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
 import { IncidentTopicRule } from '../contracts/incident-topic-message.contract';
 import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
-import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
 import { FindingOrmEntity } from '../../../infrastructure/incident-management/persistence/finding.orm-entity';
 import { OutboxMessageEntity } from '../../outbox/domain/outbox-message.entity';
 
@@ -69,15 +68,6 @@ export class IncidentResolverService {
               {}),
           },
           incidentId,
-        });
-
-        await manager.save(CaseOrmEntity, {
-          id: randomUUID(),
-          incidentId,
-          assignedUserId:
-            assignedUserId === 'UNASSIGNED' ? null : assignedUserId,
-          status: 'ASSIGNED',
-          findingId,
         });
       }
     });

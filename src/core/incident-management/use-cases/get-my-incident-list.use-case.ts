@@ -56,6 +56,10 @@ interface AuthUserDto {
   employeeId: string;
 }
 
+interface InternalUserDto {
+  roles?: string[];
+}
+
 @Injectable({ scope: Scope.REQUEST })
 export class GetMyIncidentListUseCase {
   private readonly logger = new Logger(GetMyIncidentListUseCase.name);
@@ -72,6 +76,11 @@ export class GetMyIncidentListUseCase {
 
   async execute(): Promise<MyIncidentListItem[]> {
     const user = await this.fetchCurrentUser();
+    const roles = await this.fetchUserRoles(user.id);
+    if (!roles.includes('MANAGER')) {
+      return [];
+    }
+
     const assignedUserIds = [user.id, user.employeeId].filter(Boolean);
 
     if (assignedUserIds.length === 0) {
@@ -84,16 +93,27 @@ export class GetMyIncidentListUseCase {
       })),
     });
 
-    const incidentIds = Array.from(
-      new Set(cases.map((item) => item.incidentId)),
-    );
-    if (incidentIds.length === 0) {
+    const incidentIds = new Set(cases.map((item) => item.incidentId));
+
+    if (incidentIds.size === 0) {
+      const assignedFindings = await this.findingRepository.find({
+        where: assignedUserIds.map((assignedUserId) => ({
+          assignedUserId,
+        })),
+      });
+      for (const finding of assignedFindings) {
+        incidentIds.add(finding.incidentId);
+      }
+    }
+
+    const incidentIdList = Array.from(incidentIds);
+    if (incidentIdList.length === 0) {
       return [];
     }
 
     const incidents = await this.incidentRepository.find({
       where: {
-        id: In(incidentIds),
+        id: In(incidentIdList),
         companyId: user.companyId,
       },
     });
@@ -349,10 +369,7 @@ export class GetMyIncidentListUseCase {
       return new Map();
     }
 
-    const riskServiceUrl = process.env.CMS_RISK_SERVICE_URL;
-    if (!riskServiceUrl) {
-      throw new BadRequestException('CMS_RISK_SERVICE_URL is not configured');
-    }
+    const riskServiceUrl = this.resolveRiskServiceUrl();
 
     const responses = await Promise.all(
       ruleIds.map(async (ruleId) => {
@@ -384,10 +401,7 @@ export class GetMyIncidentListUseCase {
   private async fetchRiskCategories(
     companyId: string,
   ): Promise<Map<string, RiskCategoryItem>> {
-    const riskServiceUrl = process.env.CMS_RISK_SERVICE_URL;
-    if (!riskServiceUrl) {
-      throw new BadRequestException('CMS_RISK_SERVICE_URL is not configured');
-    }
+    const riskServiceUrl = this.resolveRiskServiceUrl();
 
     const url = `${riskServiceUrl}/api/internal/risk-categories`;
     this.logger.log(`Risk API request: GET ${url} CompanyId=${companyId}`);
@@ -417,6 +431,28 @@ export class GetMyIncidentListUseCase {
     return new Map((body.items ?? []).map((item) => [item.id, item]));
   }
 
+  private async fetchUserRoles(userId: string): Promise<string[]> {
+    const authServiceUrl = process.env.CMS_AUTH_SERVICE_URL;
+    if (!authServiceUrl) {
+      throw new BadRequestException('CMS_AUTH_SERVICE_URL is not configured');
+    }
+
+    const authorization = this.request.headers.authorization;
+    if (!authorization) {
+      throw new UnauthorizedException('Authorization header is required');
+    }
+
+    const response = await fetch(`${authServiceUrl}/api/internal/users/${userId}`, {
+      headers: { authorization },
+    });
+    if (!response.ok) {
+      throw new UnauthorizedException('Unable to fetch user roles');
+    }
+
+    const user = (await response.json()) as InternalUserDto;
+    return Array.isArray(user.roles) ? user.roles : [];
+  }
+
   private groupBy<T, K>(items: T[], keyResolver: (item: T) => K): Map<K, T[]> {
     const grouped = new Map<K, T[]>();
     for (const item of items) {
@@ -435,5 +471,14 @@ export class GetMyIncidentListUseCase {
     } catch (error) {
       return `<unreadable: ${String(error)}>`;
     }
+  }
+
+  private resolveRiskServiceUrl(): string {
+    const envUrl = process.env.CMS_RISK_SERVICE_URL?.trim();
+    if (envUrl) {
+      return envUrl;
+    }
+
+    return 'http://localhost:9094';
   }
 }

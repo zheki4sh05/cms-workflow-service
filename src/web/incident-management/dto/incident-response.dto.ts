@@ -259,3 +259,40 @@ export class IncidentReportResponseDto {
   @ApiProperty({ type: FindingReportDto, isArray: true })
   findings!: FindingReportDto[];
 }
+
+export class FindingViewResponseDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  priority!: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  assignedUserId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  rulesId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true, type: String })
+  detectedAt!: Date | null;
+
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  details!: Record<string, unknown>;
+
+  @ApiProperty()
+  incidentId!: string;
+}
+
+export class IncidentViewResponseDto {
+  @ApiProperty({ type: FindingViewResponseDto, isArray: true })
+  findings!: FindingViewResponseDto[];
+
+  @ApiProperty({ required: false, nullable: true })
+  documentId!: string | null;
+
+  @ApiProperty()
+  integrationId!: number;
+
+  @ApiProperty({ required: false, nullable: true })
+  integrationName!: string | null;
+}
