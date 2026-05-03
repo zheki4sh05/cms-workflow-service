@@ -90,7 +90,7 @@ export class CaseCollaborationAccessService {
     return user as AuthUserDto;
   }
 
-  private async fetchUserRoles(userId: string): Promise<string[]> {
+  async fetchUserRoles(userId: string): Promise<string[]> {
     const authServiceUrl = process.env.CMS_AUTH_SERVICE_URL;
     if (!authServiceUrl) {
       throw new BadRequestException('CMS_AUTH_SERVICE_URL is not configured');

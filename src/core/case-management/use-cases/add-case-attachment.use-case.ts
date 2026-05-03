@@ -57,6 +57,7 @@ export class AddCaseAttachmentUseCase {
       userId: user.id,
       fileId,
       name,
+      size: file.size,
       time: new Date(),
     });
 
@@ -66,6 +67,7 @@ export class AddCaseAttachmentUseCase {
       userId: created.userId,
       fileId: created.fileId,
       name: created.name,
+      size: created.size,
       time: created.time,
     };
   }

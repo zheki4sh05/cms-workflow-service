@@ -170,6 +170,7 @@ export class GetIncidentReportUseCase {
                 userId: attachment.userId,
                 fileId: attachment.fileId,
                 name: attachment.name,
+                size: attachment.size,
                 time: attachment.time,
               }),
             ),

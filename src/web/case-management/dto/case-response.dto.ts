@@ -118,6 +118,9 @@ export class CaseAttachmentResponseDto {
   @ApiProperty()
   name!: string;
 
+  @ApiProperty({ description: 'Размер файла в байтах' })
+  size!: number;
+
   @ApiProperty()
   time!: Date;
 }

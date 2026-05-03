@@ -4,6 +4,7 @@ import {
   Header,
   Get,
   Param,
+  Patch,
   Post,
   StreamableFile,
   UploadedFile,
@@ -21,7 +22,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { GetActionPlanListUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-list.use-case';
 import { CreateActionPlanUseCase } from '../../core/action-plan-management/use-cases/create-action-plan.use-case';
 import { CreateActionPlanDto } from './dto/create-action-plan.dto';
+import { UpdateActionPlanDto } from './dto/update-action-plan.dto';
 import { SubmitActionPlanUseCase } from '../../core/action-plan-management/use-cases/submit-action-plan.use-case';
+import { UpdateActionPlanUseCase } from '../../core/action-plan-management/use-cases/update-action-plan.use-case';
 import { AddActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-action-plan-task-evidence.use-case';
 import { GetActionPlanTaskEvidencesUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-task-evidences.use-case';
 import { DownloadActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/download-action-plan-task-evidence.use-case';
@@ -30,6 +33,7 @@ import {
   ActionPlanListItemDto,
   CreateActionPlanResponseDto,
   TaskEvidenceResponseDto,
+  UpdateActionPlanResponseDto,
 } from './dto/action-plan-response.dto';
 import { CaseWithInvestigationResponseDto } from '../case-management/dto/case-response.dto';
 
@@ -38,6 +42,7 @@ export class ActionPlanController {
   constructor(
     private readonly getActionPlanListUseCase: GetActionPlanListUseCase,
     private readonly createActionPlanUseCase: CreateActionPlanUseCase,
+    private readonly updateActionPlanUseCase: UpdateActionPlanUseCase,
     private readonly submitActionPlanUseCase: SubmitActionPlanUseCase,
     private readonly addActionPlanTaskEvidenceUseCase: AddActionPlanTaskEvidenceUseCase,
     private readonly getActionPlanTaskEvidencesUseCase: GetActionPlanTaskEvidencesUseCase,
@@ -45,7 +50,10 @@ export class ActionPlanController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Возвращает список всех планов действий.' })
+  @ApiOperation({
+    summary:
+      'Для роли MANAGER: планы действий по кейсам, где пользователь ответственный (assignedUserId). Иначе пустой список.',
+  })
   @ApiOkResponse({ type: ActionPlanListItemDto, isArray: true })
   findAll() {
     return this.getActionPlanListUseCase.execute();
@@ -53,12 +61,27 @@ export class ActionPlanController {
 
   @Post()
   @ApiOperation({
-    summary: 'Создает план действий и задачи для выбранного case.',
+    summary:
+      'Создаёт или обновляет план для case (один план на case): при уже существующем плане обновляются title/description и добавляются переданные задачи.',
   })
   @ApiBody({ type: CreateActionPlanDto, required: true })
   @ApiCreatedResponse({ type: CreateActionPlanResponseDto })
   create(@Body() body: CreateActionPlanDto) {
     return this.createActionPlanUseCase.execute(body);
+  }
+
+  @Patch(':planId')
+  @ApiOperation({
+    summary:
+      'Обновляет поля плана (title, description, comment). Роль MANAGER и доступ к кейсу по правилам коллаборации.',
+  })
+  @ApiBody({ type: UpdateActionPlanDto, required: true })
+  @ApiOkResponse({ type: UpdateActionPlanResponseDto })
+  update(
+    @Param('planId') planId: string,
+    @Body() body: UpdateActionPlanDto,
+  ) {
+    return this.updateActionPlanUseCase.execute(planId, body);
   }
 
   @Post(':planId/submit')

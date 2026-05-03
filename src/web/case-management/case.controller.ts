@@ -150,6 +150,7 @@ export class CaseController {
     return new StreamableFile(file.stream, {
       type: file.contentType,
       disposition: `attachment; filename="${encodeURIComponent(file.fileName)}"`,
+      length: file.size,
     });
   }
 

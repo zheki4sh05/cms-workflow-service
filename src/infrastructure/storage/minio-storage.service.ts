@@ -41,15 +41,22 @@ export class MinioStorageService {
   async downloadAttachment(fileId: string): Promise<{
     stream: Readable;
     contentType: string;
+    size: number;
   }> {
     await this.ensureBucket();
     const stat = await this.client.statObject(this.bucketName, fileId);
     const stream = await this.client.getObject(this.bucketName, fileId);
+    const rawSize = stat.size;
+    const size =
+      typeof rawSize === 'bigint'
+        ? Number(rawSize)
+        : Number(rawSize);
 
     return {
       stream,
       contentType:
         stat.metaData?.['content-type'] || 'application/octet-stream',
+      size: Number.isFinite(size) ? size : 0,
     };
   }
 

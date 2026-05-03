@@ -24,4 +24,8 @@ export class CaseAttachmentOrmEntity {
 
   @Column({ type: 'varchar', length: 512 })
   name!: string;
+
+  /** Размер файла в байтах (из multipart при загрузке). */
+  @Column({ type: 'int' })
+  size!: number;
 }

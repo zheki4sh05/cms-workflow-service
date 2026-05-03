@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CaseAttachmentOrmEntity } from '../../../infrastructure/case-management/persistence/case-attachment.orm-entity';
@@ -26,11 +22,6 @@ export class GetCaseAttachmentsUseCase {
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
-    if (currentCase.status !== 'INVESTIGATING') {
-      throw new BadRequestException(
-        'Attachments are available only for cases in INVESTIGATING status',
-      );
-    }
 
     await this.caseCollaborationAccessService.assertCanCollaborate(currentCase);
 
@@ -45,6 +36,7 @@ export class GetCaseAttachmentsUseCase {
       userId: item.userId,
       fileId: item.fileId,
       name: item.name,
+      size: item.size,
       time: item.time,
     }));
   }

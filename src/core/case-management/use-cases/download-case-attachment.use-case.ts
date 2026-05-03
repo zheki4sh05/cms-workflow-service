@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Readable } from 'stream';
@@ -25,17 +21,17 @@ export class DownloadCaseAttachmentUseCase {
   async execute(
     caseId: string,
     attachmentId: string,
-  ): Promise<{ stream: Readable; fileName: string; contentType: string }> {
+  ): Promise<{
+    stream: Readable;
+    fileName: string;
+    contentType: string;
+    size: number;
+  }> {
     const currentCase = await this.caseRepository.findOne({
       where: { id: caseId },
     });
     if (!currentCase) {
       throw new NotFoundException('Case not found');
-    }
-    if (currentCase.status !== 'INVESTIGATING') {
-      throw new BadRequestException(
-        'Attachments are available only for cases in INVESTIGATING status',
-      );
     }
 
     await this.caseCollaborationAccessService.assertCanCollaborate(currentCase);
@@ -54,6 +50,7 @@ export class DownloadCaseAttachmentUseCase {
       stream: file.stream,
       fileName: attachment.name,
       contentType: file.contentType,
+      size: file.size,
     };
   }
 }

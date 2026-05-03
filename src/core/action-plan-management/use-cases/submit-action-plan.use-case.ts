@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { ActionPlanOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan.orm-entity';
 import { VerificationOrmEntity } from '../../../infrastructure/action-plan-management/persistence/verification.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
+import { getOptionalEnvOrDefault } from '../../../web/app/env';
 
 interface AuthUserDto {
   id: string;
@@ -168,12 +169,10 @@ export class SubmitActionPlanUseCase {
     employeeId: string;
     companyId: string;
   }): Promise<DepartmentManagerDto> {
-    const companyInfoServiceUrl = process.env.CMS_COMPANY_INFO_SERVICE_URL;
-    if (!companyInfoServiceUrl) {
-      throw new BadRequestException(
-        'CMS_COMPANY_INFO_SERVICE_URL is not configured',
-      );
-    }
+    const companyInfoServiceUrl = getOptionalEnvOrDefault(
+      'CMS_COMPANY_INFO_SERVICE_URL',
+      'http://localhost:9092',
+    );
 
     const authorization = this.request.headers.authorization;
     if (!authorization) {

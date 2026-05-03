@@ -17,6 +17,26 @@ export class ActionTaskListItemDto {
   dueAt?: Date;
 }
 
+export class UpdateActionPlanResponseDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  caseId!: string;
+
+  @ApiProperty()
+  incidentId!: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  title!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  description!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  comment!: string | null;
+}
+
 export class ActionPlanListItemDto {
   @ApiProperty()
   id!: string;
@@ -24,8 +44,37 @@ export class ActionPlanListItemDto {
   @ApiProperty()
   caseId!: string;
 
+  @ApiProperty({
+    description: 'Текущий status связанной сущности case',
+    example: 'ACTION_PLAN',
+  })
+  caseStatus!: string;
+
+  @ApiProperty({
+    description:
+      'Наименование рискового объекта из CMS Monitoring (incident → riskObjectId)',
+    required: false,
+    nullable: true,
+  })
+  riskObjectName!: string | null;
+
+  @ApiProperty({
+    description: 'Поле details из связанной записи findings (jsonb)',
+    required: false,
+    nullable: true,
+    type: Object,
+    example: {},
+  })
+  details!: Record<string, unknown> | null;
+
   @ApiProperty({ required: false, nullable: true })
   incidentId?: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  title!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  description!: string | null;
 
   @ApiProperty({ type: ActionTaskListItemDto, isArray: true })
   tasks!: ActionTaskListItemDto[];

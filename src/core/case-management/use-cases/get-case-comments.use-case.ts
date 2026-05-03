@@ -47,11 +47,6 @@ export class GetCaseCommentsUseCase {
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
-    if (currentCase.status !== 'INVESTIGATING') {
-      throw new BadRequestException(
-        'Comments are available only for cases in INVESTIGATING status',
-      );
-    }
 
     await this.caseCollaborationAccessService.assertCanCollaborate(currentCase);
 

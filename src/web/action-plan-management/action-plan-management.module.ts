@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetActionPlanListUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-list.use-case';
 import { CreateActionPlanUseCase } from '../../core/action-plan-management/use-cases/create-action-plan.use-case';
 import { SubmitActionPlanUseCase } from '../../core/action-plan-management/use-cases/submit-action-plan.use-case';
+import { UpdateActionPlanUseCase } from '../../core/action-plan-management/use-cases/update-action-plan.use-case';
 import { ApproveVerificationUseCase } from '../../core/action-plan-management/use-cases/approve-verification.use-case';
 import { AddActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-action-plan-task-evidence.use-case';
 import { GetActionPlanTaskEvidencesUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-task-evidences.use-case';
@@ -25,6 +26,7 @@ import { CaseManagementModule } from '../case-management/case-management.module'
 import { TaskController } from './task.controller';
 import { ActionPlanTaskAccessService } from '../../core/action-plan-management/services/action-plan-task-access.service';
 import { IncidentOrmEntity } from '../../infrastructure/incident-management/persistence/incident.orm-entity';
+import { FindingOrmEntity } from '../../infrastructure/incident-management/persistence/finding.orm-entity';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { IncidentOrmEntity } from '../../infrastructure/incident-management/pers
       ActionPlanOrmEntity,
       ActionPlanTaskOrmEntity,
       CaseOrmEntity,
+      FindingOrmEntity,
       IncidentOrmEntity,
       VerificationOrmEntity,
       ActionPlanTaskEvidenceOrmEntity,
@@ -46,6 +49,7 @@ import { IncidentOrmEntity } from '../../infrastructure/incident-management/pers
   providers: [
     GetActionPlanListUseCase,
     CreateActionPlanUseCase,
+    UpdateActionPlanUseCase,
     SubmitActionPlanUseCase,
     ApproveVerificationUseCase,
     AddActionPlanTaskEvidenceUseCase,

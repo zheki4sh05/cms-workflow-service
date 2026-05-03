@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateActionPlanTaskDto {
   @ApiProperty({ example: 'Пересмотреть регламент' })
@@ -26,6 +26,10 @@ export class CreateActionPlanDto {
   @ApiProperty({ example: 'Краткое описание плана/основание' })
   description!: string;
 
-  @ApiProperty({ type: [CreateActionPlanTaskDto] })
-  tasks!: CreateActionPlanTaskDto[];
+  @ApiPropertyOptional({
+    type: [CreateActionPlanTaskDto],
+    description:
+      'Задачи плана (массив объектов). Можно передать строку с JSON-массивом того же вида. При повторном запросе для того же case план обновляется, новые задачи добавляются к существующим.',
+  })
+  tasks?: CreateActionPlanTaskDto[] | string;
 }
