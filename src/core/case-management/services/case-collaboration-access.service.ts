@@ -42,6 +42,13 @@ export class CaseCollaborationAccessService {
       throw new ForbiddenException('Not enough permissions');
     }
 
+    if (
+      targetCase.assignedUserId &&
+      assignedIds.includes(targetCase.assignedUserId)
+    ) {
+      return user;
+    }
+
     const relatedCase = await this.caseRepository.findOne({
       where: {
         incidentId: targetCase.incidentId,

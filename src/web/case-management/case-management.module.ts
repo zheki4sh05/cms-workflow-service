@@ -7,6 +7,8 @@ import { AddCaseCommentUseCase } from '../../core/case-management/use-cases/add-
 import { AddCaseAttachmentUseCase } from '../../core/case-management/use-cases/add-case-attachment.use-case';
 import { GetCaseCommentsUseCase } from '../../core/case-management/use-cases/get-case-comments.use-case';
 import { GetCaseAttachmentsUseCase } from '../../core/case-management/use-cases/get-case-attachments.use-case';
+import { DownloadCaseAttachmentUseCase } from '../../core/case-management/use-cases/download-case-attachment.use-case';
+import { DeleteCaseAttachmentUseCase } from '../../core/case-management/use-cases/delete-case-attachment.use-case';
 import { UpdateCaseInvestigationUseCase } from '../../core/case-management/use-cases/update-case-investigation.use-case';
 import { GetMyCaseListUseCase } from '../../core/case-management/use-cases/get-my-case-list.use-case';
 import { GetCaseViewListUseCase } from '../../core/case-management/use-cases/get-case-view-list.use-case';
@@ -45,6 +47,8 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
     GetCaseCommentsUseCase,
     AddCaseAttachmentUseCase,
     GetCaseAttachmentsUseCase,
+    DownloadCaseAttachmentUseCase,
+    DeleteCaseAttachmentUseCase,
     UpdateCaseInvestigationUseCase,
     GetMyCaseListUseCase,
     GetCaseViewListUseCase,

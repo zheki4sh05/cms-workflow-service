@@ -87,6 +87,14 @@ export class CaseCommentResponseDto {
   @ApiProperty()
   userId!: string;
 
+  @ApiProperty({
+    description:
+      'Отображаемое имя автора из CMS Auth (/api/users/me), если доступно.',
+    required: false,
+    nullable: true,
+  })
+  userName!: string | null;
+
   @ApiProperty()
   comment!: string;
 

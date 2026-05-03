@@ -74,3 +74,15 @@ export function getNumberEnvOrDefault(
 
   return parsed;
 }
+
+export function getOptionalEnvOrDefault(
+  name: string,
+  defaultValue: string,
+): string {
+  const value = process.env[name];
+  if (value === undefined || !value.trim()) {
+    return defaultValue;
+  }
+
+  return value.trim();
+}

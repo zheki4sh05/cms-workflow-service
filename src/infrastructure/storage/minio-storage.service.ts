@@ -1,20 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { Client } from 'minio';
 import { randomUUID } from 'crypto';
-import { getNumberEnvOrDefault } from '../../web/app/env';
+import {
+  getNumberEnvOrDefault,
+  getOptionalEnvOrDefault,
+} from '../../web/app/env';
 import { UploadedFile } from '../../core/case-management/types/uploaded-file.type';
 import { Readable } from 'stream';
 
 @Injectable()
 export class MinioStorageService {
-  private readonly bucketName =
-    process.env.MINIO_BUCKET?.trim() || 'cms-workflow-attachments';
+  private readonly bucketName = getOptionalEnvOrDefault(
+    'MINIO_BUCKET',
+    'cms-workflow-attachments',
+  );
   private readonly client = new Client({
-    endPoint: process.env.MINIO_ENDPOINT?.trim() || 'localhost',
-    port: getNumberEnvOrDefault('MINIO_PORT', 9000),
-    useSSL: (process.env.MINIO_USE_SSL?.trim() || 'false') === 'true',
-    accessKey: process.env.MINIO_ACCESS_KEY?.trim() || 'minioadmin',
-    secretKey: process.env.MINIO_SECRET_KEY?.trim() || 'minioadmin',
+    endPoint: getOptionalEnvOrDefault('MINIO_ENDPOINT', 'localhost'),
+    // Дефолт 9020 — как в docker-compose (хост); внутри контейнера API всё равно 9000
+    port: getNumberEnvOrDefault('MINIO_PORT', 9020),
+    useSSL: getOptionalEnvOrDefault('MINIO_USE_SSL', 'false') === 'true',
+    accessKey: getOptionalEnvOrDefault('MINIO_ACCESS_KEY', 'minioadmin'),
+    secretKey: getOptionalEnvOrDefault('MINIO_SECRET_KEY', 'minioadmin'),
   });
 
   async uploadCaseAttachment(file: UploadedFile): Promise<string> {
@@ -45,6 +51,11 @@ export class MinioStorageService {
       contentType:
         stat.metaData?.['content-type'] || 'application/octet-stream',
     };
+  }
+
+  async removeAttachment(fileId: string): Promise<void> {
+    await this.ensureBucket();
+    await this.client.removeObject(this.bucketName, fileId);
   }
 
   private async ensureBucket(): Promise<void> {
