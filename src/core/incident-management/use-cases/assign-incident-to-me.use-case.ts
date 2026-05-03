@@ -11,7 +11,7 @@ import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
 import type { Request } from 'express';
-import { Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
 import { FindingOrmEntity } from '../../../infrastructure/incident-management/persistence/finding.orm-entity';
@@ -26,6 +26,7 @@ interface AuthUserDto {
 export class AssignIncidentToMeUseCase {
   constructor(
     @Inject(REQUEST) private readonly request: Request,
+    private readonly dataSource: DataSource,
     @InjectRepository(IncidentOrmEntity)
     private readonly incidentRepository: Repository<IncidentOrmEntity>,
     @InjectRepository(CaseOrmEntity)
@@ -34,7 +35,7 @@ export class AssignIncidentToMeUseCase {
     private readonly findingRepository: Repository<FindingOrmEntity>,
   ) {}
 
-  async execute(incidentId: string): Promise<CaseOrmEntity> {
+  async execute(incidentId: string): Promise<CaseOrmEntity[]> {
     const incident = await this.incidentRepository.findOne({
       where: { id: incidentId },
     });
@@ -47,62 +48,89 @@ export class AssignIncidentToMeUseCase {
       throw new ForbiddenException('User does not belong to incident company');
     }
 
-    const assignedUserIds = [user.id, user.employeeId].filter(Boolean);
+    const managerIds = [user.id, user.employeeId]
+      .map((id) => (typeof id === 'string' ? id.trim() : ''))
+      .filter((id) => id.length > 0);
+
+    const findings = await this.findingRepository.find({
+      where: { incidentId: incident.id },
+      order: { id: 'ASC' },
+    });
+
+    /** Назначенные менеджеру или ещё без ответственного (берём на себя). Чужие — пропускаем. */
+    const claimableFindings = findings.filter((finding) => {
+      const raw = finding.assignedUserId?.trim();
+      if (!raw) {
+        return true;
+      }
+      return managerIds.includes(raw);
+    });
+
+    if (claimableFindings.length === 0) {
+      throw new ForbiddenException(
+        'No findings to assign: none are yours or unassigned',
+      );
+    }
+
+    const ensuredCaseIds: string[] = [];
+
+    await this.dataSource.transaction(async (manager) => {
+      for (const finding of claimableFindings) {
+        let assigneeId = finding.assignedUserId?.trim() || null;
+        if (!assigneeId) {
+          assigneeId = user.id;
+          await manager.update(
+            FindingOrmEntity,
+            { id: finding.id },
+            { assignedUserId: assigneeId },
+          );
+        }
+
+        const existing = await manager.findOne(CaseOrmEntity, {
+          where: {
+            incidentId: incident.id,
+            findingId: finding.id,
+            assignedUserId: assigneeId,
+          },
+        });
+
+        if (existing) {
+          ensuredCaseIds.push(existing.id);
+          continue;
+        }
+
+        const saved = await manager.save(CaseOrmEntity, {
+          id: randomUUID(),
+          incidentId: incident.id,
+          findingId: finding.id,
+          assignedUserId: assigneeId,
+          status: 'ASSIGNED',
+        });
+        ensuredCaseIds.push(saved.id);
+      }
+    });
+
     const currentCases = await this.caseRepository.find({
       where: { incidentId: incident.id },
     });
-
-    const existingCase = currentCases.find((item) =>
-      assignedUserIds.includes(item.assignedUserId ?? ''),
-    );
-
-    let targetCase = existingCase ?? null;
-    if (!targetCase) {
-      const userFinding = await this.findingRepository.findOne({
-        where: assignedUserIds.map((assignedUserId) => ({
-          incidentId: incident.id,
-          assignedUserId,
-        })),
-      });
-
-      if (!userFinding) {
-        throw new ForbiddenException('Case for current user not found');
-      }
-
-      const assignedUserId = userFinding.assignedUserId;
-      if (!assignedUserId) {
-        throw new ForbiddenException('Case for current user not found');
-      }
-
-      targetCase = await this.caseRepository.save({
-        id: randomUUID(),
-        incidentId: incident.id,
-        findingId: userFinding.id,
-        assignedUserId,
-        status: 'ASSIGNED',
-      });
-      currentCases.push(targetCase);
-    }
 
     const allFindings = await this.findingRepository.find({
       where: { incidentId: incident.id },
     });
     const everyFindingAssigned = allFindings.every((finding) => {
-      const hasCase = currentCases.some((item) => item.findingId === finding.id);
-      return hasCase || !finding.assignedUserId;
+      const hasCase = currentCases.some(
+        (item) => item.findingId === finding.id,
+      );
+      return hasCase || !finding.assignedUserId?.trim();
     });
     incident.status = everyFindingAssigned ? 'IN_PROGRESS' : 'PARTLY_PROGRESS';
     await this.incidentRepository.save(incident);
 
-    const updatedCase = await this.caseRepository.findOne({
-      where: { id: targetCase.id },
+    return this.caseRepository.find({
+      where: { id: In(ensuredCaseIds) },
       relations: { investigation: true },
+      order: { findingId: 'ASC' },
     });
-    if (!updatedCase) {
-      throw new NotFoundException('Case not found');
-    }
-
-    return updatedCase;
   }
 
   private async fetchCurrentUser(): Promise<AuthUserDto> {

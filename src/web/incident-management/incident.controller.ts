@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Post } from '@nestjs/common';
+import { CaseOrmEntity } from '../../infrastructure/case-management/persistence/case.orm-entity';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { GetMyIncidentListUseCase } from '../../core/incident-management/use-cases/get-my-incident-list.use-case';
 import { GetIncidentReportUseCase } from '../../core/incident-management/use-cases/get-incident-report.use-case';
@@ -22,7 +23,8 @@ export class IncidentController {
 
   @Get('my')
   @ApiOperation({
-    summary: 'Возвращает инциденты, доступные текущему пользователю.',
+    summary:
+      'MANAGER: инциденты по своим назначениям (cases/findings). SUPERVISOR: инциденты текущей компании, где findings или cases назначены на userIds подчинённых отдела (cms-company-info GET /employee/department-manager-subordinates; для SUPERVISOR нужен заголовок EmployeeId, если нет employeeId в профиле).',
   })
   @ApiOkResponse({ type: MyIncidentResponseDto, isArray: true })
   findMy(): Promise<MyIncidentResponseDto[]> {
@@ -50,10 +52,38 @@ export class IncidentController {
 
   @Post(':incidentId/assign-to-me')
   @ApiOperation({
-    summary: 'Назначает инцидент текущему пользователю и создает case в статусе ASSIGNED.',
+    summary:
+      'Для каждого finding инцидента: если ответственный не указан — назначается текущий пользователь; если уже вы (id/employeeId) — оставляем. На каждый такой finding создаётся отдельный case (если ещё нет). Чужие findings не трогаются.',
   })
-  @ApiOkResponse({ type: AssignIncidentCaseResponseDto })
-  assignToMe(@Param('incidentId') incidentId: string) {
-    return this.assignIncidentToMeUseCase.execute(incidentId);
+  @ApiOkResponse({ type: AssignIncidentCaseResponseDto, isArray: true })
+  async assignToMe(
+    @Param('incidentId') incidentId: string,
+  ): Promise<AssignIncidentCaseResponseDto[]> {
+    const cases = await this.assignIncidentToMeUseCase.execute(incidentId);
+    return cases.map((c) => this.mapCaseToAssignResponse(c));
+  }
+
+  private mapCaseToAssignResponse(
+    currentCase: CaseOrmEntity,
+  ): AssignIncidentCaseResponseDto {
+    const inv = currentCase.investigation;
+    return {
+      id: currentCase.id,
+      incidentId: currentCase.incidentId,
+      findingId: currentCase.findingId,
+      assignedUserId: currentCase.assignedUserId,
+      status: currentCase.status,
+      investigation: inv
+        ? {
+            id: inv.id,
+            caseId: inv.caseId,
+            investigationNotes: inv.investigationNotes,
+            rootCause: inv.rootCause,
+            requiresCorrectiveAction: inv.requiresCorrectiveAction,
+            createdAt: inv.createdAt,
+            updatedAt: inv.updatedAt,
+          }
+        : null,
+    };
   }
 }

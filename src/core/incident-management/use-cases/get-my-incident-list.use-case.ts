@@ -13,6 +13,7 @@ import { In, Repository } from 'typeorm';
 import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
 import { FindingOrmEntity } from '../../../infrastructure/incident-management/persistence/finding.orm-entity';
+import { getOptionalEnvOrDefault } from '../../../web/app/env';
 
 type Severity = 'low' | 'medium' | 'high';
 
@@ -26,6 +27,8 @@ interface MyIncidentListItem {
   categoryName: string | null;
   severity: Severity;
   detectedAt: string | null;
+  /** assignedUserId из findings этого инцидента (без null/пустых, порядок — по findings) */
+  employees: string[];
 }
 
 interface RuleDetailsResponse {
@@ -60,6 +63,12 @@ interface InternalUserDto {
   roles?: string[];
 }
 
+interface DepartmentManagerSubordinatesResponse {
+  companyId?: string;
+  employeeId?: string;
+  userIds?: string[];
+}
+
 @Injectable({ scope: Scope.REQUEST })
 export class GetMyIncidentListUseCase {
   private readonly logger = new Logger(GetMyIncidentListUseCase.name);
@@ -77,13 +86,26 @@ export class GetMyIncidentListUseCase {
   async execute(): Promise<MyIncidentListItem[]> {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
-    if (!roles.includes('MANAGER')) {
-      return [];
-    }
 
-    const assignedUserIds = [user.id, user.employeeId].filter(Boolean);
+    let assignedUserIds: string[];
 
-    if (assignedUserIds.length === 0) {
+    if (roles.includes('SUPERVISOR')) {
+      const employeeId = this.resolveEmployeeIdForCompanyServices(user);
+      const subordinates = await this.fetchDepartmentManagerSubordinates({
+        userId: user.id,
+        employeeId,
+        companyId: user.companyId,
+      });
+      assignedUserIds = [...new Set(subordinates)];
+      if (assignedUserIds.length === 0) {
+        return [];
+      }
+    } else if (roles.includes('MANAGER')) {
+      assignedUserIds = [user.id, user.employeeId].filter(Boolean);
+      if (assignedUserIds.length === 0) {
+        return [];
+      }
+    } else {
       return [];
     }
 
@@ -180,8 +202,72 @@ export class GetMyIncidentListUseCase {
           categoryName: category?.name ?? null,
           severity,
           detectedAt,
+          employees: this.collectFindingAssigneeIds(incidentFindings),
         };
       }),
+    );
+  }
+
+  private resolveEmployeeIdForCompanyServices(user: AuthUserDto): string {
+    const fromHeader = this.request.header('EmployeeId')?.trim();
+    const fromProfile = user.employeeId?.trim();
+    const employeeId = fromHeader || fromProfile;
+    if (!employeeId) {
+      throw new BadRequestException(
+        'EmployeeId header or profile employeeId is required for supervisor incident list',
+      );
+    }
+    return employeeId;
+  }
+
+  private async fetchDepartmentManagerSubordinates(params: {
+    userId: string;
+    employeeId: string;
+    companyId: string;
+  }): Promise<string[]> {
+    const baseUrl = getOptionalEnvOrDefault(
+      'CMS_COMPANY_INFO_SERVICE_URL',
+      'http://localhost:9092',
+    );
+    const authorization = this.request.headers.authorization;
+    if (!authorization) {
+      throw new UnauthorizedException('Authorization header is required');
+    }
+
+    const query = new URLSearchParams({
+      userId: params.userId,
+      employeeId: params.employeeId,
+      companyId: params.companyId,
+    });
+
+    const root = baseUrl.replace(/\/$/, '');
+    const url = `${root}/employee/department-manager-subordinates?${query.toString()}`;
+    this.logger.log(`Company-info request: GET ${url}`);
+
+    const response = await fetch(url, {
+      headers: { authorization },
+    });
+    this.logger.log(
+      `Company-info response: GET ${url} status=${response.status}`,
+    );
+
+    if (!response.ok) {
+      const errorBody = await this.readErrorBody(response);
+      this.logger.error(
+        `Company-info error: GET ${url} status=${response.status} body=${errorBody}`,
+      );
+      throw new BadRequestException(
+        `Unable to fetch department subordinates: status ${response.status}`,
+      );
+    }
+
+    const body = (await response.json()) as DepartmentManagerSubordinatesResponse;
+    if (!Array.isArray(body.userIds)) {
+      return [];
+    }
+
+    return body.userIds.filter(
+      (id): id is string => typeof id === 'string' && id.trim().length > 0,
     );
   }
 
@@ -451,6 +537,21 @@ export class GetMyIncidentListUseCase {
 
     const user = (await response.json()) as InternalUserDto;
     return Array.isArray(user.roles) ? user.roles : [];
+  }
+
+  private collectFindingAssigneeIds(
+    incidentFindings: FindingOrmEntity[],
+  ): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const finding of incidentFindings) {
+      const id = finding.assignedUserId?.trim();
+      if (id && !seen.has(id)) {
+        seen.add(id);
+        result.push(id);
+      }
+    }
+    return result;
   }
 
   private groupBy<T, K>(items: T[], keyResolver: (item: T) => K): Map<K, T[]> {

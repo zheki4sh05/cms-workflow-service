@@ -51,6 +51,13 @@ export class MyIncidentResponseDto {
     nullable: true,
   })
   detectedAt!: string | null;
+
+  @ApiProperty({
+    description:
+      'Идентификаторы назначенных пользователей (assignedUserId) из findings этого инцидента',
+    type: [String],
+  })
+  employees!: string[];
 }
 
 export class InvestigationReportDto {
