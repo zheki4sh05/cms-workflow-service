@@ -1,14 +1,17 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
-  NotFoundException,
+  Logger,
   Scope,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
 import { In, Repository } from 'typeorm';
+import { getOptionalEnvOrDefault } from '../../../web/app/env';
 import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { FindingOrmEntity } from '../../../infrastructure/incident-management/persistence/finding.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
@@ -19,6 +22,20 @@ import { ActionPlanOrmEntity } from '../../../infrastructure/action-plan-managem
 import { ActionPlanTaskOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
 import { VerificationOrmEntity } from '../../../infrastructure/action-plan-management/persistence/verification.orm-entity';
 import { ActionPlanTaskEvidenceOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan-task-evidence.orm-entity';
+
+interface AuthUserDto {
+  id: string;
+  companyId: string;
+  employeeId: string;
+}
+
+interface InternalUserDto {
+  roles?: string[];
+}
+
+interface DepartmentManagerSubordinatesResponse {
+  userIds?: string[];
+}
 
 interface IntegrationConfigResponse {
   number?: number;
@@ -55,8 +72,18 @@ interface InternalUserProfileResponse {
   };
 }
 
+interface PaginatedIncidentReport {
+  items: unknown[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 @Injectable({ scope: Scope.REQUEST })
-export class GetIncidentReportUseCase {
+export class GetIncidentReportListUseCase {
+  private readonly logger = new Logger(GetIncidentReportListUseCase.name);
+
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     @InjectRepository(IncidentOrmEntity)
@@ -81,33 +108,136 @@ export class GetIncidentReportUseCase {
     private readonly taskEvidenceRepository: Repository<ActionPlanTaskEvidenceOrmEntity>,
   ) {}
 
-  async execute(incidentId: string) {
-    const incident = await this.incidentRepository.findOne({
-      where: { id: incidentId },
-    });
-    if (!incident) {
-      throw new NotFoundException('Incident not found');
+  async execute(page: number, limit: number): Promise<PaginatedIncidentReport> {
+    const user = await this.fetchCurrentUser();
+    const roles = await this.fetchUserRoles(user.id);
+
+    const isExecutive = roles.includes('EXECUTIVE');
+    const isSupervisor = roles.includes('SUPERVISOR');
+    if (!isExecutive && !isSupervisor) {
+      throw new ForbiddenException(
+        'Only SUPERVISOR and EXECUTIVE can access incident reports',
+      );
     }
 
-    const findings = await this.findingRepository.find({
-      where: { incidentId: incident.id },
+    const normalizedPage = this.normalizePage(page);
+    const normalizedLimit = this.normalizeLimit(limit);
+
+    if (isExecutive) {
+      return this.buildExecutivePage(
+        user.companyId,
+        normalizedPage,
+        normalizedLimit,
+      );
+    }
+
+    return this.buildSupervisorPage(user, normalizedPage, normalizedLimit);
+  }
+
+  private async buildExecutivePage(
+    companyId: string,
+    page: number,
+    limit: number,
+  ): Promise<PaginatedIncidentReport> {
+    const total = await this.incidentRepository.count({
+      where: { companyId },
+    });
+
+    if (total === 0) {
+      return this.buildEmptyPage(page, limit);
+    }
+
+    const incidents = await this.incidentRepository.find({
+      where: { companyId },
+      order: { id: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const items = await this.buildReportsForIncidents(incidents);
+    return this.buildPageResult(items, page, limit, total);
+  }
+
+  private async buildSupervisorPage(
+    user: AuthUserDto,
+    page: number,
+    limit: number,
+  ): Promise<PaginatedIncidentReport> {
+    const employeeId = this.resolveEmployeeIdForCompanyServices(user);
+    const subordinates = await this.fetchDepartmentManagerSubordinates({
+      userId: user.id,
+      employeeId,
+      companyId: user.companyId,
+    });
+    const subordinateUserIds = [...new Set(subordinates)];
+
+    if (subordinateUserIds.length === 0) {
+      return this.buildEmptyPage(page, limit);
+    }
+
+    const [cases, findings] = await Promise.all([
+      this.caseRepository.find({
+        where: subordinateUserIds.map((assignedUserId) => ({ assignedUserId })),
+      }),
+      this.findingRepository.find({
+        where: subordinateUserIds.map((assignedUserId) => ({ assignedUserId })),
+      }),
+    ]);
+
+    const incidentIds = [
+      ...new Set([
+        ...cases.map((item) => item.incidentId),
+        ...findings.map((item) => item.incidentId),
+      ]),
+    ];
+    if (incidentIds.length === 0) {
+      return this.buildEmptyPage(page, limit);
+    }
+
+    const availableIncidents = await this.incidentRepository.find({
+      where: {
+        id: In(incidentIds),
+        companyId: user.companyId,
+      },
       order: { id: 'ASC' },
     });
+
+    const total = availableIncidents.length;
+    if (total === 0) {
+      return this.buildEmptyPage(page, limit);
+    }
+
+    const paginatedIncidents = availableIncidents.slice(
+      (page - 1) * limit,
+      (page - 1) * limit + limit,
+    );
+    const items = await this.buildReportsForIncidents(paginatedIncidents);
+    return this.buildPageResult(items, page, limit, total);
+  }
+
+  private async buildReportsForIncidents(incidents: IncidentOrmEntity[]) {
+    if (incidents.length === 0) {
+      return [];
+    }
+
+    const incidentIds = incidents.map((incident) => incident.id);
+    const findings = await this.findingRepository.find({
+      where: { incidentId: In(incidentIds) },
+      order: { id: 'ASC' },
+    });
+    const findingIds = findings.map((item) => item.id);
     const ruleIds = Array.from(
       new Set(
         findings
-          .map((finding) => this.extractRuleId(finding))
-          .filter((ruleId): ruleId is string => Boolean(ruleId)),
+          .map((item) => this.extractRuleId(item))
+          .filter((id): id is string => Boolean(id)),
       ),
     );
-    const findingIds = findings.map((item) => item.id);
 
-    const cases = findingIds.length
-      ? await this.caseRepository.find({
-          where: { incidentId: incident.id, findingId: In(findingIds) },
-          order: { id: 'ASC' },
-        })
-      : [];
+    const cases = await this.caseRepository.find({
+      where: { incidentId: In(incidentIds) },
+      order: { id: 'ASC' },
+    });
     const caseIds = cases.map((item) => item.id);
 
     const investigations = caseIds.length
@@ -135,7 +265,6 @@ export class GetIncidentReportUseCase {
         })
       : [];
     const actionPlanIds = actionPlans.map((item) => item.id);
-
     const tasks = actionPlanIds.length
       ? await this.actionPlanTaskRepository.find({
           where: { actionPlanId: In(actionPlanIds) },
@@ -143,7 +272,6 @@ export class GetIncidentReportUseCase {
         })
       : [];
     const taskIds = tasks.map((item) => item.id);
-
     const verifications = actionPlanIds.length
       ? await this.verificationRepository.find({
           where: { actionPlanId: In(actionPlanIds) },
@@ -156,50 +284,43 @@ export class GetIncidentReportUseCase {
           order: { time: 'ASC' },
         })
       : [];
-    const [integration, ruleMap, riskObject, assigneeMap] = await Promise.all([
-      this.fetchIntegrationConfig(incident.integrationId, incident.companyId),
+
+    const [integrationMap, ruleMap, riskObjectMap, assigneeMap] = await Promise.all([
+      this.fetchIntegrationMap(incidents),
       this.fetchRules(ruleIds),
-      this.fetchRiskObject(incident.riskObjectId, incident.companyId),
+      this.fetchRiskObjectMap(incidents),
       this.fetchUserNamesById(findings.map((finding) => finding.assignedUserId)),
     ]);
 
+    const findingsByIncidentId = this.groupBy(findings, (item) => item.incidentId);
+    const casesByFindingId = this.groupBy(
+      cases.filter((item) => findingIds.includes(item.findingId)),
+      (item) => item.findingId,
+    );
     const investigationsByCaseId = new Map(
       investigations.map((item) => [item.caseId, item]),
     );
     const commentsByCaseId = this.groupBy(caseComments, (item) => item.caseId);
-    const attachmentsByCaseId = this.groupBy(
-      caseAttachments,
-      (item) => item.caseId,
-    );
-    const actionPlansByCaseId = this.groupBy(
-      actionPlans,
-      (item) => item.caseId,
-    );
-    const tasksByActionPlanId = this.groupBy(
-      tasks,
-      (item) => item.actionPlanId,
-    );
+    const attachmentsByCaseId = this.groupBy(caseAttachments, (item) => item.caseId);
+    const actionPlansByCaseId = this.groupBy(actionPlans, (item) => item.caseId);
+    const tasksByActionPlanId = this.groupBy(tasks, (item) => item.actionPlanId);
     const verificationByActionPlanId = new Map(
       verifications.map((item) => [item.actionPlanId, item]),
     );
-    const evidencesByTaskId = this.groupBy(
-      taskEvidences,
-      (item) => item.taskId,
-    );
-    const casesByFindingId = this.groupBy(cases, (item) => item.findingId);
+    const evidencesByTaskId = this.groupBy(taskEvidences, (item) => item.taskId);
 
-    return {
+    return incidents.map((incident) => ({
       incident: {
         id: incident.id,
         companyId: incident.companyId,
-        integrationId: integration.number ?? incident.integrationId,
-        integrationName: integration.name ?? null,
+        integrationId: incident.integrationId,
+        integrationName: integrationMap.get(incident.integrationId) ?? null,
         riskObjectId: incident.riskObjectId,
-        riskObjectName: riskObject.name ?? incident.riskObjectId,
-        documentId: incident.documentId,
+        riskObjectName: riskObjectMap.get(incident.riskObjectId) ?? null,
+        documentId: incident.documentId ?? null,
         status: incident.status,
       },
-      findings: findings.map((finding) => ({
+      findings: (findingsByIncidentId.get(incident.id) ?? []).map((finding) => ({
         id: finding.id,
         priority: finding.priority,
         assignedUserId: finding.assignedUserId,
@@ -275,26 +396,13 @@ export class GetIncidentReportUseCase {
           };
         }),
       })),
-    };
-  }
-
-  private groupBy<T, K>(items: T[], keyResolver: (item: T) => K): Map<K, T[]> {
-    const grouped = new Map<K, T[]>();
-    for (const item of items) {
-      const key = keyResolver(item);
-      const current = grouped.get(key) ?? [];
-      current.push(item);
-      grouped.set(key, current);
-    }
-
-    return grouped;
+    }));
   }
 
   private mapInvestigation(investigation?: InvestigationOrmEntity) {
     if (!investigation) {
       return null;
     }
-
     return {
       id: investigation.id,
       caseId: investigation.caseId,
@@ -310,7 +418,6 @@ export class GetIncidentReportUseCase {
     if (!verification) {
       return null;
     }
-
     return {
       id: verification.id,
       actionPlanId: verification.actionPlanId,
@@ -320,6 +427,249 @@ export class GetIncidentReportUseCase {
         verification.assignedEmployeeForVerification,
       comments: verification.comments,
     };
+  }
+
+  private buildPageResult(
+    items: unknown[],
+    page: number,
+    limit: number,
+    total: number,
+  ): PaginatedIncidentReport {
+    return {
+      items,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  private buildEmptyPage(page: number, limit: number): PaginatedIncidentReport {
+    return {
+      items: [],
+      page,
+      limit,
+      total: 0,
+      totalPages: 0,
+    };
+  }
+
+  private normalizePage(page: number): number {
+    if (!Number.isFinite(page) || page < 1) {
+      return 1;
+    }
+    return Math.floor(page);
+  }
+
+  private normalizeLimit(limit: number): number {
+    if (!Number.isFinite(limit) || limit < 1) {
+      return 10;
+    }
+    return Math.min(Math.floor(limit), 100);
+  }
+
+  private resolveEmployeeIdForCompanyServices(user: AuthUserDto): string {
+    const fromHeader = this.request.header('EmployeeId')?.trim();
+    const fromProfile = user.employeeId?.trim();
+    const employeeId = fromHeader || fromProfile;
+    if (!employeeId) {
+      throw new BadRequestException(
+        'EmployeeId header or profile employeeId is required for supervisor reports',
+      );
+    }
+    return employeeId;
+  }
+
+  private async fetchDepartmentManagerSubordinates(params: {
+    userId: string;
+    employeeId: string;
+    companyId: string;
+  }): Promise<string[]> {
+    const baseUrl = getOptionalEnvOrDefault(
+      'CMS_COMPANY_INFO_SERVICE_URL',
+      'http://localhost:9092',
+    );
+    const authorization = this.request.headers.authorization;
+    if (!authorization) {
+      throw new UnauthorizedException('Authorization header is required');
+    }
+
+    const query = new URLSearchParams({
+      userId: params.userId,
+      employeeId: params.employeeId,
+      companyId: params.companyId,
+    });
+    const root = baseUrl.replace(/\/$/, '');
+    const url = `${root}/employee/department-manager-subordinates?${query.toString()}`;
+    this.logger.log(`Company-info request: GET ${url}`);
+
+    const response = await fetch(url, {
+      headers: { authorization },
+    });
+    this.logger.log(
+      `Company-info response: GET ${url} status=${response.status}`,
+    );
+
+    if (!response.ok) {
+      const errorBody = await this.readErrorBody(response);
+      this.logger.error(
+        `Company-info error: GET ${url} status=${response.status} body=${errorBody}`,
+      );
+      throw new BadRequestException(
+        `Unable to fetch department subordinates: status ${response.status}`,
+      );
+    }
+
+    const body = (await response.json()) as DepartmentManagerSubordinatesResponse;
+    if (!Array.isArray(body.userIds)) {
+      return [];
+    }
+    return body.userIds.filter(
+      (id): id is string => typeof id === 'string' && id.trim().length > 0,
+    );
+  }
+
+  private async fetchCurrentUser(): Promise<AuthUserDto> {
+    const authServiceUrl = process.env.CMS_AUTH_SERVICE_URL;
+    if (!authServiceUrl) {
+      throw new BadRequestException('CMS_AUTH_SERVICE_URL is not configured');
+    }
+
+    const authorization = this.request.headers.authorization;
+    if (!authorization) {
+      throw new UnauthorizedException('Authorization header is required');
+    }
+
+    const response = await fetch(`${authServiceUrl}/api/users/me`, {
+      headers: { authorization },
+    });
+    if (!response.ok) {
+      throw new UnauthorizedException('Unable to fetch current user');
+    }
+
+    const user = (await response.json()) as Partial<AuthUserDto>;
+    if (!user.id || !user.companyId) {
+      throw new UnauthorizedException('Invalid user payload');
+    }
+
+    return {
+      id: user.id,
+      companyId: user.companyId,
+      employeeId: user.employeeId ?? '',
+    };
+  }
+
+  private async fetchUserRoles(userId: string): Promise<string[]> {
+    const authServiceUrl = process.env.CMS_AUTH_SERVICE_URL;
+    if (!authServiceUrl) {
+      throw new BadRequestException('CMS_AUTH_SERVICE_URL is not configured');
+    }
+
+    const authorization = this.request.headers.authorization;
+    if (!authorization) {
+      throw new UnauthorizedException('Authorization header is required');
+    }
+
+    const response = await fetch(`${authServiceUrl}/api/internal/users/${userId}`, {
+      headers: { authorization },
+    });
+    if (!response.ok) {
+      throw new UnauthorizedException('Unable to fetch user roles');
+    }
+
+    const user = (await response.json()) as InternalUserDto;
+    return Array.isArray(user.roles) ? user.roles : [];
+  }
+
+  private groupBy<T, K>(items: T[], keyResolver: (item: T) => K): Map<K, T[]> {
+    const grouped = new Map<K, T[]>();
+    for (const item of items) {
+      const key = keyResolver(item);
+      const current = grouped.get(key) ?? [];
+      current.push(item);
+      grouped.set(key, current);
+    }
+    return grouped;
+  }
+
+  private async readErrorBody(response: Response): Promise<string> {
+    try {
+      const bodyText = await response.text();
+      return bodyText || '<empty>';
+    } catch (error) {
+      return `<unreadable: ${String(error)}>`;
+    }
+  }
+
+  private async fetchIntegrationMap(
+    incidents: IncidentOrmEntity[],
+  ): Promise<Map<number, string>> {
+    const byCompany = this.groupBy(incidents, (item) => item.companyId);
+    const pairs = await Promise.all(
+      Array.from(byCompany.entries()).flatMap(([companyId, companyIncidents]) => {
+        const integrationIds = Array.from(
+          new Set(companyIncidents.map((item) => item.integrationId)),
+        );
+        return integrationIds.map(async (integrationId) => {
+          const integration = await this.fetchIntegrationConfig(
+            integrationId,
+            companyId,
+          );
+          return [
+            integrationId,
+            integration.name ?? String(integration.number ?? integrationId),
+          ] as const;
+        });
+      }),
+    );
+
+    return new Map(pairs);
+  }
+
+  private async fetchRiskObjectMap(
+    incidents: IncidentOrmEntity[],
+  ): Promise<Map<string, string>> {
+    const byCompany = this.groupBy(incidents, (item) => item.companyId);
+    const pairs = await Promise.all(
+      Array.from(byCompany.entries()).flatMap(([companyId, companyIncidents]) => {
+        const riskObjectIds = Array.from(
+          new Set(companyIncidents.map((item) => item.riskObjectId)),
+        );
+        return riskObjectIds.map(async (riskObjectId) => {
+          const riskObject = await this.fetchRiskObject(riskObjectId, companyId);
+          return [riskObjectId, riskObject.name ?? riskObjectId] as const;
+        });
+      }),
+    );
+
+    return new Map(pairs);
+  }
+
+  private async fetchRiskObject(
+    riskObjectId: string,
+    companyId: string,
+  ): Promise<RiskObjectResponse> {
+    const monitoringServiceUrl = process.env.CMS_MONITORING_SERVICE_URL?.trim();
+    if (!monitoringServiceUrl) {
+      throw new BadRequestException('CMS_MONITORING_SERVICE_URL is not configured');
+    }
+
+    const response = await fetch(
+      `${monitoringServiceUrl}/api/internal/risk-objects/${riskObjectId}`,
+      {
+        headers: {
+          CompanyId: companyId,
+        },
+      },
+    );
+    if (!response.ok) {
+      const errorBody = await this.readErrorBody(response);
+      throw new BadRequestException(
+        `Unable to fetch risk object: status ${response.status}${errorBody ? `, body: ${errorBody}` : ''}`,
+      );
+    }
+
+    return (await response.json()) as RiskObjectResponse;
   }
 
   private async fetchIntegrationConfig(
@@ -340,12 +690,7 @@ export class GetIncidentReportUseCase {
       },
     );
     if (!response.ok) {
-      let errorBody = '';
-      try {
-        errorBody = await response.text();
-      } catch {
-        errorBody = '';
-      }
+      const errorBody = await this.readErrorBody(response);
       throw new BadRequestException(
         `Unable to fetch integration config: status ${response.status}${errorBody ? `, body: ${errorBody}` : ''}`,
       );
@@ -376,38 +721,6 @@ export class GetIncidentReportUseCase {
     );
 
     return new Map(responses);
-  }
-
-  private async fetchRiskObject(
-    riskObjectId: string,
-    companyId: string,
-  ): Promise<RiskObjectResponse> {
-    const monitoringServiceUrl = process.env.CMS_MONITORING_SERVICE_URL?.trim();
-    if (!monitoringServiceUrl) {
-      throw new BadRequestException('CMS_MONITORING_SERVICE_URL is not configured');
-    }
-
-    const response = await fetch(
-      `${monitoringServiceUrl}/api/internal/risk-objects/${riskObjectId}`,
-      {
-        headers: {
-          CompanyId: companyId,
-        },
-      },
-    );
-    if (!response.ok) {
-      let errorBody = '';
-      try {
-        errorBody = await response.text();
-      } catch {
-        errorBody = '';
-      }
-      throw new BadRequestException(
-        `Unable to fetch risk object: status ${response.status}${errorBody ? `, body: ${errorBody}` : ''}`,
-      );
-    }
-
-    return (await response.json()) as RiskObjectResponse;
   }
 
   private extractRuleId(finding: FindingOrmEntity): string | null {
@@ -460,7 +773,7 @@ export class GetIncidentReportUseCase {
 
     const authorization = this.request.headers.authorization;
     if (!authorization) {
-      throw new BadRequestException('Authorization header is required');
+      throw new UnauthorizedException('Authorization header is required');
     }
 
     await Promise.all(

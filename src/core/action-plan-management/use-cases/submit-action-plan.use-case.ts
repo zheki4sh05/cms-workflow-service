@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   Scope,
   UnauthorizedException,
@@ -36,6 +37,8 @@ interface DepartmentManagerDto {
 
 @Injectable({ scope: Scope.REQUEST })
 export class SubmitActionPlanUseCase {
+  private readonly logger = new Logger(SubmitActionPlanUseCase.name);
+
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     @InjectRepository(ActionPlanOrmEntity)
@@ -184,12 +187,30 @@ export class SubmitActionPlanUseCase {
       employeeId: params.employeeId,
       companyId: params.companyId,
     });
+    const requestUrl = `${companyInfoServiceUrl}/employee/department-manager?${query.toString()}`;
 
-    const response = await fetch(
-      `${companyInfoServiceUrl}/employee/department-manager?${query.toString()}`,
-      { headers: { authorization } },
-    );
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, { headers: { authorization } });
+    } catch (error) {
+      this.logger.error(
+        `Failed to call department manager endpoint: ${requestUrl}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw new BadRequestException('Unable to fetch department manager');
+    }
+
     if (!response.ok) {
+      const responseBody = await response.text();
+      this.logger.error('Department manager request failed', {
+        requestUrl,
+        userId: params.userId,
+        employeeId: params.employeeId,
+        companyId: params.companyId,
+        status: response.status,
+        statusText: response.statusText,
+        responseBody,
+      });
       throw new BadRequestException('Unable to fetch department manager');
     }
 

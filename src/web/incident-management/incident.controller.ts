@@ -1,12 +1,14 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CaseOrmEntity } from '../../infrastructure/case-management/persistence/case.orm-entity';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { GetMyIncidentListUseCase } from '../../core/incident-management/use-cases/get-my-incident-list.use-case';
 import { GetIncidentReportUseCase } from '../../core/incident-management/use-cases/get-incident-report.use-case';
 import { AssignIncidentToMeUseCase } from '../../core/incident-management/use-cases/assign-incident-to-me.use-case';
 import { GetIncidentViewUseCase } from '../../core/incident-management/use-cases/get-incident-view.use-case';
+import { GetIncidentReportListUseCase } from '../../core/incident-management/use-cases/get-incident-report-list.use-case';
 import {
   AssignIncidentCaseResponseDto,
+  IncidentReportListResponseDto,
   IncidentReportResponseDto,
   IncidentViewResponseDto,
   MyIncidentResponseDto,
@@ -19,6 +21,7 @@ export class IncidentController {
     private readonly getIncidentReportUseCase: GetIncidentReportUseCase,
     private readonly assignIncidentToMeUseCase: AssignIncidentToMeUseCase,
     private readonly getIncidentViewUseCase: GetIncidentViewUseCase,
+    private readonly getIncidentReportListUseCase: GetIncidentReportListUseCase,
   ) {}
 
   @Get('my')
@@ -29,6 +32,24 @@ export class IncidentController {
   @ApiOkResponse({ type: MyIncidentResponseDto, isArray: true })
   findMy(): Promise<MyIncidentResponseDto[]> {
     return this.getMyIncidentListUseCase.execute();
+  }
+
+  @Get('reports')
+  @ApiOperation({
+    summary:
+      'Постраничный список полных отчетов по инцидентам для ролей SUPERVISOR и EXECUTIVE.',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiOkResponse({ type: IncidentReportListResponseDto })
+  getReports(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ): Promise<IncidentReportListResponseDto> {
+    return this.getIncidentReportListUseCase.execute(
+      Number(page ?? '1'),
+      Number(limit ?? '10'),
+    ) as Promise<IncidentReportListResponseDto>;
   }
 
   @Get(':incidentId/report')

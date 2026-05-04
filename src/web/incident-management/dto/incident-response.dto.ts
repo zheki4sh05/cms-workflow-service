@@ -14,7 +14,13 @@ export class IncidentResponseDto {
   riskObjectId!: string;
 
   @ApiProperty({ required: false, nullable: true })
+  riskObjectName!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
   documentId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  integrationName!: string | null;
 
   @ApiProperty()
   status!: string;
@@ -255,6 +261,15 @@ export class FindingReportDto {
   @ApiProperty({ required: false, nullable: true })
   assignedUserId!: string | null;
 
+  @ApiProperty({ required: false, nullable: true })
+  ruleName!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  firstName!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  lastName!: string | null;
+
   @ApiProperty({ type: 'object', additionalProperties: true })
   details!: Record<string, unknown>;
 
@@ -329,4 +344,29 @@ export class AssignIncidentCaseResponseDto {
     nullable: true,
   })
   investigation!: InvestigationReportDto | null;
+}
+
+export class IncidentReportListItemDto {
+  @ApiProperty({ type: IncidentResponseDto })
+  incident!: IncidentResponseDto;
+
+  @ApiProperty({ type: FindingReportDto, isArray: true })
+  findings!: FindingReportDto[];
+}
+
+export class IncidentReportListResponseDto {
+  @ApiProperty({ type: IncidentReportListItemDto, isArray: true })
+  items!: IncidentReportListItemDto[];
+
+  @ApiProperty()
+  page!: number;
+
+  @ApiProperty()
+  limit!: number;
+
+  @ApiProperty()
+  total!: number;
+
+  @ApiProperty()
+  totalPages!: number;
 }
