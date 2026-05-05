@@ -59,6 +59,13 @@ export class MyIncidentResponseDto {
   detectedAt!: string | null;
 
   @ApiProperty({
+    description: 'Дата закрытия инцидента в формате ISO',
+    required: false,
+    nullable: true,
+  })
+  resolved_date!: string | null;
+
+  @ApiProperty({
     description:
       'Идентификаторы назначенных пользователей (assignedUserId) из findings этого инцидента',
     type: [String],

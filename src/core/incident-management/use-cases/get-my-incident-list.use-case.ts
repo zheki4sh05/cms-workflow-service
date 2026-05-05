@@ -27,6 +27,7 @@ interface MyIncidentListItem {
   categoryName: string | null;
   severity: Severity;
   detectedAt: string | null;
+  resolved_date: string | null;
   /** assignedUserId из findings этого инцидента (без null/пустых, порядок — по findings) */
   employees: string[];
 }
@@ -202,6 +203,7 @@ export class GetMyIncidentListUseCase {
           categoryName: category?.name ?? null,
           severity,
           detectedAt,
+          resolved_date: incident.resolvedDate?.toISOString() ?? null,
           employees: this.collectFindingAssigneeIds(incidentFindings),
         };
       }),
