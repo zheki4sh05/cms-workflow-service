@@ -5,6 +5,7 @@ import { CreateActionPlanUseCase } from '../../core/action-plan-management/use-c
 import { SubmitActionPlanUseCase } from '../../core/action-plan-management/use-cases/submit-action-plan.use-case';
 import { UpdateActionPlanUseCase } from '../../core/action-plan-management/use-cases/update-action-plan.use-case';
 import { ApproveVerificationUseCase } from '../../core/action-plan-management/use-cases/approve-verification.use-case';
+import { ReturnActionPlanForRevisionUseCase } from '../../core/action-plan-management/use-cases/return-action-plan-for-revision.use-case';
 import { AddActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-action-plan-task-evidence.use-case';
 import { GetActionPlanTaskEvidencesUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-task-evidences.use-case';
 import { DownloadActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/download-action-plan-task-evidence.use-case';
@@ -52,6 +53,7 @@ import { FindingOrmEntity } from '../../infrastructure/incident-management/persi
     UpdateActionPlanUseCase,
     SubmitActionPlanUseCase,
     ApproveVerificationUseCase,
+    ReturnActionPlanForRevisionUseCase,
     AddActionPlanTaskEvidenceUseCase,
     GetActionPlanTaskEvidencesUseCase,
     DownloadActionPlanTaskEvidenceUseCase,

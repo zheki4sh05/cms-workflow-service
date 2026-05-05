@@ -90,6 +90,9 @@ export class SubmitActionPlanUseCase {
     });
     await this.verificationRepository.save(verification);
 
+    actionPlan.showTasks = false;
+    await this.actionPlanRepository.save(actionPlan);
+
     currentCase.status = 'WAITING_VERIFICATION';
     await this.caseRepository.save(currentCase);
 

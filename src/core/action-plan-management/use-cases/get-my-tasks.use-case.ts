@@ -42,11 +42,18 @@ export class GetMyTasksUseCase {
       return [];
     }
 
-    const actionPlanById = new Map(actionPlans.map((plan) => [plan.id, plan]));
+    const visibleActionPlans = actionPlans.filter((plan) => plan.showTasks);
+    if (visibleActionPlans.length === 0) {
+      return [];
+    }
+
+    const actionPlanById = new Map(
+      visibleActionPlans.map((plan) => [plan.id, plan]),
+    );
     const caseById = new Map(cases.map((item) => [item.id, item]));
 
     const tasks = await this.actionPlanTaskRepository.find({
-      where: { actionPlanId: In(actionPlans.map((plan) => plan.id)) },
+      where: { actionPlanId: In(visibleActionPlans.map((plan) => plan.id)) },
       order: { dueDate: 'ASC' },
     });
 

@@ -57,11 +57,6 @@ export class AddCaseCommentUseCase {
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
-    if (currentCase.status !== 'INVESTIGATING') {
-      throw new BadRequestException(
-        'Comments can be added only for cases in INVESTIGATING status',
-      );
-    }
     const user =
       await this.caseCollaborationAccessService.assertCanCollaborate(
         currentCase,

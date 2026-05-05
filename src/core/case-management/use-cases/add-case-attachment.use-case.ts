@@ -39,11 +39,6 @@ export class AddCaseAttachmentUseCase {
     if (!currentCase) {
       throw new NotFoundException('Case not found');
     }
-    if (currentCase.status !== 'INVESTIGATING') {
-      throw new BadRequestException(
-        'Attachments can be added only for cases in INVESTIGATING status',
-      );
-    }
     const user =
       await this.caseCollaborationAccessService.assertCanCollaborate(
         currentCase,

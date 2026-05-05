@@ -40,6 +40,9 @@ export class ActionPlanOrmEntity {
   @Column({ type: 'text', nullable: true })
   comment!: string | null;
 
+  @Column({ type: 'boolean', default: false })
+  showTasks!: boolean;
+
   @OneToMany(() => ActionPlanTaskOrmEntity, (task) => task.actionPlan)
   tasks!: ActionPlanTaskOrmEntity[];
 }

@@ -101,6 +101,7 @@ export class UpdateActionPlanUseCase {
       title: actionPlan.title,
       description: actionPlan.description,
       comment: actionPlan.comment,
+      showTasks: actionPlan.showTasks,
     };
   }
 }

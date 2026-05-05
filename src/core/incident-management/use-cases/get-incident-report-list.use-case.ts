@@ -83,6 +83,12 @@ interface PaginatedIncidentReport {
 @Injectable({ scope: Scope.REQUEST })
 export class GetIncidentReportListUseCase {
   private readonly logger = new Logger(GetIncidentReportListUseCase.name);
+  private static readonly EXTERNAL_CACHE_TTL_MS = 2 * 60 * 1000;
+  private static readonly EXTERNAL_CACHE_MAX_ITEMS = 10;
+  private static readonly externalCache = new Map<
+    string,
+    { expiresAt: number; value: unknown }
+  >();
 
   constructor(
     @Inject(REQUEST) private readonly request: Request,
@@ -289,7 +295,11 @@ export class GetIncidentReportListUseCase {
       this.fetchIntegrationMap(incidents),
       this.fetchRules(ruleIds),
       this.fetchRiskObjectMap(incidents),
-      this.fetchUserNamesById(findings.map((finding) => finding.assignedUserId)),
+      this.fetchUserNamesById([
+        ...findings.map((finding) => finding.assignedUserId),
+        ...caseComments.map((comment) => comment.userId),
+        ...caseAttachments.map((attachment) => attachment.userId),
+      ]),
     ]);
 
     const findingsByIncidentId = this.groupBy(findings, (item) => item.incidentId);
@@ -343,6 +353,8 @@ export class GetIncidentReportListUseCase {
               (comment) => ({
                 id: comment.id,
                 userId: comment.userId,
+                firstName: this.resolveFirstName(comment.userId, assigneeMap),
+                lastName: this.resolveLastName(comment.userId, assigneeMap),
                 comment: comment.comment,
                 time: comment.time,
               }),
@@ -351,6 +363,8 @@ export class GetIncidentReportListUseCase {
               (attachment) => ({
                 id: attachment.id,
                 userId: attachment.userId,
+                firstName: this.resolveFirstName(attachment.userId, assigneeMap),
+                lastName: this.resolveLastName(attachment.userId, assigneeMap),
                 fileId: attachment.fileId,
                 name: attachment.name,
                 size: attachment.size,
@@ -654,22 +668,27 @@ export class GetIncidentReportListUseCase {
       throw new BadRequestException('CMS_MONITORING_SERVICE_URL is not configured');
     }
 
-    const response = await fetch(
-      `${monitoringServiceUrl}/api/internal/risk-objects/${riskObjectId}`,
-      {
-        headers: {
-          CompanyId: companyId,
-        },
+    return this.readThroughExternalCache<RiskObjectResponse>(
+      `risk-object:${companyId}:${riskObjectId}`,
+      async () => {
+        const response = await fetch(
+          `${monitoringServiceUrl}/api/internal/risk-objects/${riskObjectId}`,
+          {
+            headers: {
+              CompanyId: companyId,
+            },
+          },
+        );
+        if (!response.ok) {
+          const errorBody = await this.readErrorBody(response);
+          throw new BadRequestException(
+            `Unable to fetch risk object: status ${response.status}${errorBody ? `, body: ${errorBody}` : ''}`,
+          );
+        }
+
+        return (await response.json()) as RiskObjectResponse;
       },
     );
-    if (!response.ok) {
-      const errorBody = await this.readErrorBody(response);
-      throw new BadRequestException(
-        `Unable to fetch risk object: status ${response.status}${errorBody ? `, body: ${errorBody}` : ''}`,
-      );
-    }
-
-    return (await response.json()) as RiskObjectResponse;
   }
 
   private async fetchIntegrationConfig(
@@ -681,22 +700,27 @@ export class GetIncidentReportListUseCase {
       throw new BadRequestException('CMS_MONITORING_SERVICE_URL is not configured');
     }
 
-    const response = await fetch(
-      `${monitoringServiceUrl}/api/internal/integration-configs/${integrationId}`,
-      {
-        headers: {
-          CompanyId: companyId,
-        },
+    return this.readThroughExternalCache<IntegrationConfigResponse>(
+      `integration-config:${companyId}:${integrationId}`,
+      async () => {
+        const response = await fetch(
+          `${monitoringServiceUrl}/api/internal/integration-configs/${integrationId}`,
+          {
+            headers: {
+              CompanyId: companyId,
+            },
+          },
+        );
+        if (!response.ok) {
+          const errorBody = await this.readErrorBody(response);
+          throw new BadRequestException(
+            `Unable to fetch integration config: status ${response.status}${errorBody ? `, body: ${errorBody}` : ''}`,
+          );
+        }
+
+        return (await response.json()) as IntegrationConfigResponse;
       },
     );
-    if (!response.ok) {
-      const errorBody = await this.readErrorBody(response);
-      throw new BadRequestException(
-        `Unable to fetch integration config: status ${response.status}${errorBody ? `, body: ${errorBody}` : ''}`,
-      );
-    }
-
-    return (await response.json()) as IntegrationConfigResponse;
   }
 
   private async fetchRules(
@@ -711,11 +735,18 @@ export class GetIncidentReportListUseCase {
 
     const responses = await Promise.all(
       ruleIds.map(async (ruleId) => {
-        const response = await fetch(`${riskServiceUrl}/api/internal/rules/${ruleId}`);
-        if (!response.ok) {
-          return [ruleId, {}] as const;
-        }
-        const body = (await response.json()) as RuleDetailsResponse;
+        const body = await this.readThroughExternalCache<RuleDetailsResponse>(
+          `risk-rule:${ruleId}`,
+          async () => {
+            const response = await fetch(
+              `${riskServiceUrl}/api/internal/rules/${ruleId}`,
+            );
+            if (!response.ok) {
+              return {};
+            }
+            return (await response.json()) as RuleDetailsResponse;
+          },
+        );
         return [ruleId, body] as const;
       }),
     );
@@ -778,20 +809,28 @@ export class GetIncidentReportListUseCase {
 
     await Promise.all(
       normalizedUniqueIds.map(async (userId) => {
-        const response = await fetch(`${authServiceUrl}/api/internal/users/${userId}`, {
-          headers: { authorization },
-        });
-        if (!response.ok) {
-          result.set(userId, { firstName: null, lastName: null });
-          return;
-        }
+        const profile = await this.readThroughExternalCache<{
+          firstName: string | null;
+          lastName: string | null;
+        }>(`auth-user:${userId}`, async () => {
+          const response = await fetch(
+            `${authServiceUrl}/api/internal/users/${userId}`,
+            {
+              headers: { authorization },
+            },
+          );
+          if (!response.ok) {
+            return { firstName: null, lastName: null };
+          }
 
-        const body = (await response.json()) as InternalUserProfileResponse;
-        const parts = this.extractUserNameParts(body);
-        result.set(userId, {
-          firstName: parts.firstName,
-          lastName: parts.lastName,
+          const body = (await response.json()) as InternalUserProfileResponse;
+          const parts = this.extractUserNameParts(body);
+          return {
+            firstName: parts.firstName,
+            lastName: parts.lastName,
+          };
         });
+        result.set(userId, profile);
       }),
     );
 
@@ -879,5 +918,45 @@ export class GetIncidentReportListUseCase {
       (item): item is string => typeof item === 'string' && item.trim().length > 0,
     );
     return value?.trim() ?? null;
+  }
+
+  private async readThroughExternalCache<T>(
+    key: string,
+    loader: () => Promise<T>,
+  ): Promise<T> {
+    const now = Date.now();
+    const cached = GetIncidentReportListUseCase.externalCache.get(key);
+    if (cached && cached.expiresAt > now) {
+      // LRU touch: move entry to the end.
+      GetIncidentReportListUseCase.externalCache.delete(key);
+      GetIncidentReportListUseCase.externalCache.set(key, cached);
+      return cached.value as T;
+    }
+
+    if (cached) {
+      GetIncidentReportListUseCase.externalCache.delete(key);
+    }
+
+    const value = await loader();
+    GetIncidentReportListUseCase.externalCache.set(key, {
+      value,
+      expiresAt: now + GetIncidentReportListUseCase.EXTERNAL_CACHE_TTL_MS,
+    });
+    this.evictExternalCacheOverflow();
+    return value;
+  }
+
+  private evictExternalCacheOverflow(): void {
+    while (
+      GetIncidentReportListUseCase.externalCache.size >
+      GetIncidentReportListUseCase.EXTERNAL_CACHE_MAX_ITEMS
+    ) {
+      const oldestKey =
+        GetIncidentReportListUseCase.externalCache.keys().next().value;
+      if (!oldestKey) {
+        break;
+      }
+      GetIncidentReportListUseCase.externalCache.delete(oldestKey);
+    }
   }
 }

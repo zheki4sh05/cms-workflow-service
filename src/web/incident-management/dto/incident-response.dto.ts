@@ -96,6 +96,12 @@ export class CaseCommentReportDto {
   @ApiProperty()
   userId!: string;
 
+  @ApiProperty({ required: false, nullable: true })
+  firstName!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  lastName!: string | null;
+
   @ApiProperty()
   comment!: string;
 
@@ -109,6 +115,12 @@ export class CaseAttachmentReportDto {
 
   @ApiProperty()
   userId!: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  firstName!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  lastName!: string | null;
 
   @ApiProperty()
   fileId!: string;

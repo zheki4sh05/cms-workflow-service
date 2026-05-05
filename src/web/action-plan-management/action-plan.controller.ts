@@ -25,10 +25,14 @@ import { CreateActionPlanDto } from './dto/create-action-plan.dto';
 import { UpdateActionPlanDto } from './dto/update-action-plan.dto';
 import { SubmitActionPlanUseCase } from '../../core/action-plan-management/use-cases/submit-action-plan.use-case';
 import { UpdateActionPlanUseCase } from '../../core/action-plan-management/use-cases/update-action-plan.use-case';
+import { ApproveVerificationUseCase } from '../../core/action-plan-management/use-cases/approve-verification.use-case';
+import { ReturnActionPlanForRevisionUseCase } from '../../core/action-plan-management/use-cases/return-action-plan-for-revision.use-case';
 import { AddActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-action-plan-task-evidence.use-case';
 import { GetActionPlanTaskEvidencesUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-task-evidences.use-case';
 import { DownloadActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/download-action-plan-task-evidence.use-case';
 import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
+import { ConfirmActionPlanDto } from './dto/confirm-action-plan.dto';
+import { ReturnActionPlanForRevisionDto } from './dto/return-action-plan-for-revision.dto';
 import {
   ActionPlanListItemDto,
   CreateActionPlanResponseDto,
@@ -44,6 +48,8 @@ export class ActionPlanController {
     private readonly createActionPlanUseCase: CreateActionPlanUseCase,
     private readonly updateActionPlanUseCase: UpdateActionPlanUseCase,
     private readonly submitActionPlanUseCase: SubmitActionPlanUseCase,
+    private readonly approveVerificationUseCase: ApproveVerificationUseCase,
+    private readonly returnActionPlanForRevisionUseCase: ReturnActionPlanForRevisionUseCase,
     private readonly addActionPlanTaskEvidenceUseCase: AddActionPlanTaskEvidenceUseCase,
     private readonly getActionPlanTaskEvidencesUseCase: GetActionPlanTaskEvidencesUseCase,
     private readonly downloadActionPlanTaskEvidenceUseCase: DownloadActionPlanTaskEvidenceUseCase,
@@ -92,6 +98,38 @@ export class ActionPlanController {
   @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
   submit(@Param('planId') planId: string) {
     return this.submitActionPlanUseCase.execute(planId);
+  }
+
+  @Post(':planId/confirm')
+  @ApiOperation({
+    summary: 'Подтверждает план действий (SUPERVISOR/EXECUTIVE).',
+  })
+  @ApiBody({ type: ConfirmActionPlanDto, required: true })
+  @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
+  confirm(
+    @Param('planId') planId: string,
+    @Body() body: ConfirmActionPlanDto,
+  ) {
+    const comments = body.comments ?? body.comment;
+    return this.approveVerificationUseCase.execute(planId, {
+      approved: true,
+      comments,
+    });
+  }
+
+  @Post(':planId/return-for-revision')
+  @ApiOperation({
+    summary: 'Отправляет план действий на доработку (SUPERVISOR/EXECUTIVE).',
+  })
+  @ApiBody({ type: ReturnActionPlanForRevisionDto, required: true })
+  @ApiOkResponse({ type: CaseWithInvestigationResponseDto })
+  returnForRevision(
+    @Param('planId') planId: string,
+    @Body() body: ReturnActionPlanForRevisionDto,
+  ) {
+    return this.returnActionPlanForRevisionUseCase.execute(planId, {
+      comments: body.comments ?? body.comment,
+    });
   }
 
   @Post(':actionPlanId/tasks/:taskId/evidences')

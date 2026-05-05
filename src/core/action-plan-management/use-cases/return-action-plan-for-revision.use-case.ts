@@ -23,13 +23,12 @@ interface InternalUserDto {
   roles?: string[];
 }
 
-interface ApproveVerificationPayload {
-  approved?: boolean;
+interface ReturnForRevisionPayload {
   comments?: string;
 }
 
 @Injectable({ scope: Scope.REQUEST })
-export class ApproveVerificationUseCase {
+export class ReturnActionPlanForRevisionUseCase {
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     @InjectRepository(ActionPlanOrmEntity)
@@ -42,12 +41,8 @@ export class ApproveVerificationUseCase {
 
   async execute(
     actionPlanId: string,
-    payload: ApproveVerificationPayload,
+    payload: ReturnForRevisionPayload,
   ): Promise<CaseOrmEntity> {
-    if (payload.approved !== true) {
-      throw new BadRequestException('Only approved=true is supported');
-    }
-
     const comments = payload.comments?.trim();
     if (!comments) {
       throw new BadRequestException('comments is required');
@@ -57,7 +52,7 @@ export class ApproveVerificationUseCase {
     const roles = await this.fetchUserRoles(user.id);
     if (!roles.includes('SUPERVISOR') && !roles.includes('EXECUTIVE')) {
       throw new ForbiddenException(
-        'Only supervisor or executive can approve verification',
+        'Only supervisor or executive can return action plan for revision',
       );
     }
 
@@ -75,12 +70,12 @@ export class ApproveVerificationUseCase {
       throw new NotFoundException('Verification not found');
     }
 
-    verification.verified = true;
+    verification.verified = false;
     verification.comments = comments;
     await this.verificationRepository.save(verification);
 
     actionPlan.comment = comments;
-    actionPlan.showTasks = true;
+    actionPlan.showTasks = false;
     await this.actionPlanRepository.save(actionPlan);
 
     const currentCase = await this.caseRepository.findOne({
@@ -90,7 +85,7 @@ export class ApproveVerificationUseCase {
       throw new NotFoundException('Case not found');
     }
 
-    currentCase.status = 'ACTION_IN_PROGRESS';
+    currentCase.status = 'ACTION_PLAN';
     await this.caseRepository.save(currentCase);
 
     const updatedCase = await this.caseRepository.findOne({

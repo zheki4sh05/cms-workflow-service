@@ -20,6 +20,7 @@ export interface ActionPlanListItemResult {
   details: Record<string, unknown> | null;
   title: string | null;
   description: string | null;
+  showTasks: boolean;
   tasks: Array<{
     id: string;
     title: string;
@@ -177,6 +178,7 @@ export class GetActionPlanListUseCase {
         details,
         title: plan.title,
         description: plan.description,
+        showTasks: plan.showTasks,
         tasks: (tasksByPlanId.get(plan.id) ?? []).map((task) => ({
           id: task.id,
           title: task.title,

@@ -50,9 +50,10 @@ When incident transitions to `RESOLVED`, the `incident.resolved_date` column is 
 - `ACTION_PLAN` - action plan stage.
 - `WAITING_VERIFICATION` - action plan submitted and waiting for verification.
 - `ACTION_IN_PROGRESS` - verified action plan is being executed.
-- `IN_PROGRESS` - case is in progress.
 - `REJECTED` - case is rejected.
 - `CLOSED` - case is completed and closed.
+
+`IN_PROGRESS` is used only for `incident`, not for `case`.
 
 ## Kafka incident intake and outbox
 

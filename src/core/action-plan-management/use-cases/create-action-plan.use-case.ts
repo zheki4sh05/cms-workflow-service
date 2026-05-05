@@ -146,6 +146,7 @@ export class CreateActionPlanUseCase {
           {
             title,
             description,
+            showTasks: false,
           },
         );
 
@@ -177,6 +178,7 @@ export class CreateActionPlanUseCase {
           title,
           description,
           comment: null,
+          showTasks: false,
         });
 
         for (const task of validatedTasks) {
@@ -207,6 +209,9 @@ export class CreateActionPlanUseCase {
       where: { actionPlanId },
       order: { dueDate: 'ASC' },
     });
+    const persistedActionPlan = await this.actionPlanRepository.findOne({
+      where: { id: actionPlanId },
+    });
 
     return {
       id: actionPlanId,
@@ -214,6 +219,7 @@ export class CreateActionPlanUseCase {
       caseStatus: refreshedCase?.status ?? currentCase.status,
       title,
       description,
+      showTasks: persistedActionPlan?.showTasks ?? false,
       tasks: persistedTasks.map((task) => ({
         id: task.id,
         title: task.title,

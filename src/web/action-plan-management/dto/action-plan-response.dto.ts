@@ -35,6 +35,12 @@ export class UpdateActionPlanResponseDto {
 
   @ApiProperty({ required: false, nullable: true })
   comment!: string | null;
+
+  @ApiProperty({
+    description: 'Показывать ли задачи этого плана в API задач',
+    example: false,
+  })
+  showTasks!: boolean;
 }
 
 export class ActionPlanListItemDto {
@@ -76,6 +82,12 @@ export class ActionPlanListItemDto {
   @ApiProperty({ required: false, nullable: true })
   description!: string | null;
 
+  @ApiProperty({
+    description: 'Показывать ли задачи этого плана в API задач',
+    example: false,
+  })
+  showTasks!: boolean;
+
   @ApiProperty({ type: ActionTaskListItemDto, isArray: true })
   tasks!: ActionTaskListItemDto[];
 }
@@ -95,6 +107,12 @@ export class CreateActionPlanResponseDto {
 
   @ApiProperty()
   description!: string;
+
+  @ApiProperty({
+    description: 'Показывать ли задачи этого плана в API задач',
+    example: false,
+  })
+  showTasks!: boolean;
 
   @ApiProperty({ type: () => TaskResponseDto, isArray: true })
   tasks!: TaskResponseDto[];
