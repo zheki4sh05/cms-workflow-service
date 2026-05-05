@@ -154,6 +154,27 @@ export class TaskResponseDto {
   @ApiProperty({ required: false, nullable: true })
   caseStatus!: string | null;
 
+  @ApiProperty({ required: false, nullable: true })
+  incidentId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  documentId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  incidentStatus!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  comment!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  actionPlanTitle!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  actionPlanDescription!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  actionPlanComment!: string | null;
+
   @ApiProperty()
   title!: string;
 

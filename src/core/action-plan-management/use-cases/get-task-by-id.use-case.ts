@@ -8,7 +8,7 @@ export class GetTaskByIdUseCase {
   ) {}
 
   async execute(taskId: string) {
-    const { task, actionPlan, currentCase } =
+    const { task, actionPlan, currentCase, incident } =
       await this.actionPlanTaskAccessService.getTaskContext(taskId);
     if (!actionPlan.showTasks) {
       throw new ForbiddenException(
@@ -21,6 +21,13 @@ export class GetTaskByIdUseCase {
       actionPlanId: task.actionPlanId,
       caseId: actionPlan.caseId,
       caseStatus: currentCase.status,
+      incidentId: actionPlan.incidentId,
+      documentId: incident.documentId ?? null,
+      incidentStatus: incident.status,
+      comment: actionPlan.comment,
+      actionPlanTitle: actionPlan.title,
+      actionPlanDescription: actionPlan.description,
+      actionPlanComment: actionPlan.comment,
       title: task.title,
       description: task.description,
       priority: task.priority,

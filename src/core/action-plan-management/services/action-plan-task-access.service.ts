@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { ActionPlanTaskOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
 import { ActionPlanOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
+import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { CaseCollaborationAccessService } from '../../case-management/services/case-collaboration-access.service';
 
 interface AuthUserDto {
@@ -30,6 +31,8 @@ export class ActionPlanTaskAccessService {
     private readonly actionPlanRepository: Repository<ActionPlanOrmEntity>,
     @InjectRepository(CaseOrmEntity)
     private readonly caseRepository: Repository<CaseOrmEntity>,
+    @InjectRepository(IncidentOrmEntity)
+    private readonly incidentRepository: Repository<IncidentOrmEntity>,
     private readonly caseCollaborationAccessService: CaseCollaborationAccessService,
   ) {}
 
@@ -63,6 +66,7 @@ export class ActionPlanTaskAccessService {
     task: ActionPlanTaskOrmEntity;
     actionPlan: ActionPlanOrmEntity;
     currentCase: CaseOrmEntity;
+    incident: IncidentOrmEntity;
   }> {
     const task = await this.actionPlanTaskRepository.findOne({
       where: { id: taskId },
@@ -87,6 +91,13 @@ export class ActionPlanTaskAccessService {
 
     await this.caseCollaborationAccessService.assertCanCollaborate(currentCase);
 
-    return { task, actionPlan, currentCase };
+    const incident = await this.incidentRepository.findOne({
+      where: { id: actionPlan.incidentId },
+    });
+    if (!incident) {
+      throw new NotFoundException('Incident not found');
+    }
+
+    return { task, actionPlan, currentCase, incident };
   }
 }
