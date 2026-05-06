@@ -21,11 +21,13 @@ import { GetTaskByIdUseCase } from '../../core/action-plan-management/use-cases/
 import { UpdateTaskUseCase } from '../../core/action-plan-management/use-cases/update-task.use-case';
 import { CompleteTaskUseCase } from '../../core/action-plan-management/use-cases/complete-task.use-case';
 import { AddTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-task-evidence.use-case';
+import { GetMyTaskStatsUseCase } from '../../core/action-plan-management/use-cases/get-my-task-stats.use-case';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CompleteTaskDto } from './dto/complete-task.dto';
 import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
 import {
   TaskEvidenceResponseDto,
+  TaskStatsResponseDto,
   TaskResponseDto,
 } from './dto/action-plan-response.dto';
 
@@ -33,6 +35,7 @@ import {
 export class TaskController {
   constructor(
     private readonly getMyTasksUseCase: GetMyTasksUseCase,
+    private readonly getMyTaskStatsUseCase: GetMyTaskStatsUseCase,
     private readonly getTaskByIdUseCase: GetTaskByIdUseCase,
     private readonly updateTaskUseCase: UpdateTaskUseCase,
     private readonly completeTaskUseCase: CompleteTaskUseCase,
@@ -44,6 +47,15 @@ export class TaskController {
   @ApiOkResponse({ type: TaskResponseDto, isArray: true })
   getMy() {
     return this.getMyTasksUseCase.execute();
+  }
+
+  @Get('my/stats')
+  @ApiOperation({
+    summary: 'Возвращает статистику задач текущего менеджера.',
+  })
+  @ApiOkResponse({ type: TaskStatsResponseDto })
+  getMyStats(): Promise<TaskStatsResponseDto> {
+    return this.getMyTaskStatsUseCase.execute();
   }
 
   @Get(':taskId')

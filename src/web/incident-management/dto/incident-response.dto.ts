@@ -73,6 +73,51 @@ export class MyIncidentResponseDto {
   employees!: string[];
 }
 
+export class IncidentStatsByCategoryDto {
+  @ApiProperty()
+  categoryId!: string | null;
+
+  @ApiProperty()
+  categoryName!: string;
+
+  @ApiProperty()
+  incidentCount!: number;
+}
+
+export class IncidentManagerStatsResponseDto {
+  @ApiProperty()
+  new!: number;
+
+  @ApiProperty()
+  assigned!: number;
+
+  @ApiProperty()
+  inReview!: number;
+
+  @ApiProperty()
+  resolved!: number;
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'number' },
+    example: { low: 2, medium: 4, high: 2 },
+  })
+  bySeverity!: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+
+  @ApiProperty({ type: IncidentStatsByCategoryDto, isArray: true })
+  byCategory!: IncidentStatsByCategoryDto[];
+
+  @ApiProperty({
+    description: 'Среднее время решения инцидентов в часах',
+    example: 36,
+  })
+  avgResolutionTime!: number;
+}
+
 export class InvestigationReportDto {
   @ApiProperty()
   id!: string;

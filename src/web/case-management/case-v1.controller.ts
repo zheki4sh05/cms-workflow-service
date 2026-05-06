@@ -20,6 +20,7 @@ import { GetMyCaseListUseCase } from '../../core/case-management/use-cases/get-m
 import { MyCaseListItemResponseDto } from './dto/my-case-list-item-response.dto';
 import { GetCaseViewListUseCase } from '../../core/case-management/use-cases/get-case-view-list.use-case';
 import { CaseViewListItemResponseDto } from './dto/case-view-list-item-response.dto';
+import { GetMyCaseStatsUseCase } from '../../core/case-management/use-cases/get-my-case-stats.use-case';
 import { AddCaseCommentUseCase } from '../../core/case-management/use-cases/add-case-comment.use-case';
 import { AddCaseAttachmentUseCase } from '../../core/case-management/use-cases/add-case-attachment.use-case';
 import { CreateCaseCommentDto } from './dto/create-case-comment.dto';
@@ -27,12 +28,14 @@ import type { UploadedFile as UploadedBinaryFile } from '../../core/case-managem
 import {
   CaseAttachmentResponseDto,
   CaseCommentResponseDto,
+  MyCaseStatsResponseDto,
 } from './dto/case-response.dto';
 
 @Controller('api/v1/cases')
 export class CaseV1Controller {
   constructor(
     private readonly getMyCaseListUseCase: GetMyCaseListUseCase,
+    private readonly getMyCaseStatsUseCase: GetMyCaseStatsUseCase,
     private readonly getCaseViewListUseCase: GetCaseViewListUseCase,
     private readonly addCaseCommentUseCase: AddCaseCommentUseCase,
     private readonly addCaseAttachmentUseCase: AddCaseAttachmentUseCase,
@@ -46,6 +49,16 @@ export class CaseV1Controller {
   @ApiOkResponse({ type: MyCaseListItemResponseDto, isArray: true })
   findMy(): Promise<MyCaseListItemResponseDto[]> {
     return this.getMyCaseListUseCase.execute();
+  }
+
+  @Get('my/stats')
+  @ApiOperation({
+    summary:
+      'Возвращает статистику по case для MANAGER (только case, где текущий пользователь назначен ответственным).',
+  })
+  @ApiOkResponse({ type: MyCaseStatsResponseDto })
+  findMyStats(): Promise<MyCaseStatsResponseDto> {
+    return this.getMyCaseStatsUseCase.execute();
   }
 
   @Get(':caseId/view')

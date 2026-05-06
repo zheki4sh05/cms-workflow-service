@@ -14,6 +14,7 @@ import { GetTaskByIdUseCase } from '../../core/action-plan-management/use-cases/
 import { UpdateTaskUseCase } from '../../core/action-plan-management/use-cases/update-task.use-case';
 import { CompleteTaskUseCase } from '../../core/action-plan-management/use-cases/complete-task.use-case';
 import { AddTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-task-evidence.use-case';
+import { GetMyTaskStatsUseCase } from '../../core/action-plan-management/use-cases/get-my-task-stats.use-case';
 import { ACTION_PLAN_REPOSITORY } from '../../core/action-plan-management/ports/action-plan.repository.port';
 import { InMemoryActionPlanRepository } from '../../infrastructure/action-plan-management/persistence/in-memory-action-plan.repository';
 import { ActionPlanController } from './action-plan.controller';
@@ -58,6 +59,7 @@ import { FindingOrmEntity } from '../../infrastructure/incident-management/persi
     GetActionPlanTaskEvidencesUseCase,
     DownloadActionPlanTaskEvidenceUseCase,
     GetMyTasksUseCase,
+    GetMyTaskStatsUseCase,
     GetTaskByIdUseCase,
     UpdateTaskUseCase,
     CompleteTaskUseCase,

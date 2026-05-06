@@ -55,6 +55,12 @@ When incident transitions to `RESOLVED`, the `incident.resolved_date` column is 
 
 `IN_PROGRESS` is used only for `incident`, not for `case`.
 
+### Action plan task statuses
+
+- `TODO` - task is created and waiting to be started.
+- `IN_PROGRESS` - task is in progress.
+- `DONE` - task is completed.
+
 ## Kafka incident intake and outbox
 
 - Consumer subscribes to Kafka topic `incident_topic` via Nest microservice transport.

@@ -11,6 +11,7 @@ import { DownloadCaseAttachmentUseCase } from '../../core/case-management/use-ca
 import { DeleteCaseAttachmentUseCase } from '../../core/case-management/use-cases/delete-case-attachment.use-case';
 import { UpdateCaseInvestigationUseCase } from '../../core/case-management/use-cases/update-case-investigation.use-case';
 import { GetMyCaseListUseCase } from '../../core/case-management/use-cases/get-my-case-list.use-case';
+import { GetMyCaseStatsUseCase } from '../../core/case-management/use-cases/get-my-case-stats.use-case';
 import { GetCaseViewListUseCase } from '../../core/case-management/use-cases/get-case-view-list.use-case';
 import { CASE_REPOSITORY } from '../../core/case-management/ports/case.repository.port';
 import { InMemoryCaseRepository } from '../../infrastructure/case-management/persistence/in-memory-case.repository';
@@ -51,6 +52,7 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
     DeleteCaseAttachmentUseCase,
     UpdateCaseInvestigationUseCase,
     GetMyCaseListUseCase,
+    GetMyCaseStatsUseCase,
     GetCaseViewListUseCase,
     CaseCollaborationAccessService,
     MinioStorageService,

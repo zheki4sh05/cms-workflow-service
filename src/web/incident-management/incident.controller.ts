@@ -6,8 +6,10 @@ import { GetIncidentReportUseCase } from '../../core/incident-management/use-cas
 import { AssignIncidentToMeUseCase } from '../../core/incident-management/use-cases/assign-incident-to-me.use-case';
 import { GetIncidentViewUseCase } from '../../core/incident-management/use-cases/get-incident-view.use-case';
 import { GetIncidentReportListUseCase } from '../../core/incident-management/use-cases/get-incident-report-list.use-case';
+import { GetMyIncidentStatsUseCase } from '../../core/incident-management/use-cases/get-my-incident-stats.use-case';
 import {
   AssignIncidentCaseResponseDto,
+  IncidentManagerStatsResponseDto,
   IncidentReportListResponseDto,
   IncidentReportResponseDto,
   IncidentViewResponseDto,
@@ -22,6 +24,7 @@ export class IncidentController {
     private readonly assignIncidentToMeUseCase: AssignIncidentToMeUseCase,
     private readonly getIncidentViewUseCase: GetIncidentViewUseCase,
     private readonly getIncidentReportListUseCase: GetIncidentReportListUseCase,
+    private readonly getMyIncidentStatsUseCase: GetMyIncidentStatsUseCase,
   ) {}
 
   @Get('my')
@@ -32,6 +35,16 @@ export class IncidentController {
   @ApiOkResponse({ type: MyIncidentResponseDto, isArray: true })
   findMy(): Promise<MyIncidentResponseDto[]> {
     return this.getMyIncidentListUseCase.execute();
+  }
+
+  @Get('my/stats')
+  @ApiOperation({
+    summary:
+      'Статистика по инцидентам менеджера (для MANAGER и SUPERVISOR по доступным назначениям).',
+  })
+  @ApiOkResponse({ type: IncidentManagerStatsResponseDto })
+  getMyStats(): Promise<IncidentManagerStatsResponseDto> {
+    return this.getMyIncidentStatsUseCase.execute();
   }
 
   @Get('reports')

@@ -21,6 +21,10 @@ interface AuthUserDto {
   employeeId?: string;
 }
 
+interface InternalUserDto {
+  roles?: string[];
+}
+
 @Injectable({ scope: Scope.REQUEST })
 export class ActionPlanTaskAccessService {
   constructor(
@@ -60,6 +64,28 @@ export class ActionPlanTaskAccessService {
     }
 
     return user as AuthUserDto;
+  }
+
+  async fetchUserRoles(userId: string): Promise<string[]> {
+    const authServiceUrl = process.env.CMS_AUTH_SERVICE_URL;
+    if (!authServiceUrl) {
+      throw new BadRequestException('CMS_AUTH_SERVICE_URL is not configured');
+    }
+
+    const authorization = this.request.headers.authorization;
+    if (!authorization) {
+      throw new UnauthorizedException('Authorization header is required');
+    }
+
+    const response = await fetch(`${authServiceUrl}/api/internal/users/${userId}`, {
+      headers: { authorization },
+    });
+    if (!response.ok) {
+      throw new UnauthorizedException('Unable to fetch user roles');
+    }
+
+    const user = (await response.json()) as InternalUserDto;
+    return Array.isArray(user.roles) ? user.roles : [];
   }
 
   async getTaskContext(taskId: string): Promise<{

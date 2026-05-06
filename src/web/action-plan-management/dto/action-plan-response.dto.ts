@@ -199,3 +199,32 @@ export class TaskResponseDto {
   @ApiProperty({ required: false, nullable: true })
   completedAt!: Date | null;
 }
+
+export class TaskStatsResponseDto {
+  @ApiProperty()
+  total!: number;
+
+  @ApiProperty()
+  todo!: number;
+
+  @ApiProperty()
+  inProgress!: number;
+
+  @ApiProperty()
+  done!: number;
+
+  @ApiProperty()
+  overdue!: number;
+
+  @ApiProperty()
+  dueToday!: number;
+
+  @ApiProperty({ type: [String] })
+  dueTodayIds!: string[];
+
+  @ApiProperty()
+  dueTomorrow!: number;
+
+  @ApiProperty({ type: [String] })
+  dueTomorrowIds!: string[];
+}

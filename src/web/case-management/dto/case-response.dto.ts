@@ -124,3 +124,41 @@ export class CaseAttachmentResponseDto {
   @ApiProperty()
   time!: Date;
 }
+
+export class MyCaseStatsResponseDto {
+  @ApiProperty()
+  total!: number;
+
+  @ApiProperty()
+  ASSIGNED!: number;
+
+  @ApiProperty()
+  ACTION_PLAN!: number;
+
+  @ApiProperty()
+  OPEN!: number;
+
+  @ApiProperty()
+  INVESTIGATING!: number;
+
+  @ApiProperty()
+  WAITING_VERIFICATION!: number;
+
+  @ApiProperty()
+  ACTION_IN_PROGRESS!: number;
+
+  @ApiProperty()
+  IN_PROGRESS!: number;
+
+  @ApiProperty()
+  REJECTED!: number;
+
+  @ApiProperty()
+  CLOSED!: number;
+
+  @ApiProperty({
+    description: 'Среднее время решения case в часах',
+    example: 48,
+  })
+  avgResolutionTime!: number;
+}
