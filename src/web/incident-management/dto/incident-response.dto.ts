@@ -86,6 +86,15 @@ export class IncidentStatsByCategoryDto {
 
 export class IncidentManagerStatsResponseDto {
   @ApiProperty()
+  totalIncidents!: number;
+
+  @ApiProperty()
+  totalFindings!: number;
+
+  @ApiProperty()
+  totalCases!: number;
+
+  @ApiProperty()
   new!: number;
 
   @ApiProperty()

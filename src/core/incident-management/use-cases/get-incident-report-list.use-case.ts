@@ -10,9 +10,12 @@ import {
 import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
-import { In, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Like, Repository } from 'typeorm';
 import { getOptionalEnvOrDefault } from '../../../web/app/env';
-import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
+import {
+  IncidentOrmEntity,
+  IncidentStatus,
+} from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { FindingOrmEntity } from '../../../infrastructure/incident-management/persistence/finding.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
 import { InvestigationOrmEntity } from '../../../infrastructure/investigation-management/persistence/investigation.orm-entity';
@@ -80,6 +83,12 @@ interface PaginatedIncidentReport {
   totalPages: number;
 }
 
+interface IncidentReportFilters {
+  incidentId?: string;
+  documentId?: string;
+  status?: string;
+}
+
 @Injectable({ scope: Scope.REQUEST })
 export class GetIncidentReportListUseCase {
   private readonly logger = new Logger(GetIncidentReportListUseCase.name);
@@ -114,7 +123,11 @@ export class GetIncidentReportListUseCase {
     private readonly taskEvidenceRepository: Repository<ActionPlanTaskEvidenceOrmEntity>,
   ) {}
 
-  async execute(page: number, limit: number): Promise<PaginatedIncidentReport> {
+  async execute(
+    page: number,
+    limit: number,
+    filters: IncidentReportFilters = {},
+  ): Promise<PaginatedIncidentReport> {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
 
@@ -134,19 +147,22 @@ export class GetIncidentReportListUseCase {
         user.companyId,
         normalizedPage,
         normalizedLimit,
+        filters,
       );
     }
 
-    return this.buildSupervisorPage(user, normalizedPage, normalizedLimit);
+    return this.buildSupervisorPage(user, normalizedPage, normalizedLimit, filters);
   }
 
   private async buildExecutivePage(
     companyId: string,
     page: number,
     limit: number,
+    filters: IncidentReportFilters,
   ): Promise<PaginatedIncidentReport> {
+    const where = this.buildIncidentWhere({ companyId, filters });
     const total = await this.incidentRepository.count({
-      where: { companyId },
+      where,
     });
 
     if (total === 0) {
@@ -154,7 +170,7 @@ export class GetIncidentReportListUseCase {
     }
 
     const incidents = await this.incidentRepository.find({
-      where: { companyId },
+      where,
       order: { id: 'ASC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -168,6 +184,7 @@ export class GetIncidentReportListUseCase {
     user: AuthUserDto,
     page: number,
     limit: number,
+    filters: IncidentReportFilters,
   ): Promise<PaginatedIncidentReport> {
     const employeeId = this.resolveEmployeeIdForCompanyServices(user);
     const subordinates = await this.fetchDepartmentManagerSubordinates({
@@ -200,25 +217,79 @@ export class GetIncidentReportListUseCase {
       return this.buildEmptyPage(page, limit);
     }
 
-    const availableIncidents = await this.incidentRepository.find({
-      where: {
-        id: In(incidentIds),
-        companyId: user.companyId,
-      },
-      order: { id: 'ASC' },
-    });
+    const requestedIncidentId = filters.incidentId?.trim();
+    if (requestedIncidentId && !incidentIds.includes(requestedIncidentId)) {
+      return this.buildEmptyPage(page, limit);
+    }
 
-    const total = availableIncidents.length;
+    const where = this.buildIncidentWhere({
+      companyId: user.companyId,
+      availableIncidentIds: incidentIds,
+      filters,
+    });
+    const total = await this.incidentRepository.count({
+      where,
+    });
     if (total === 0) {
       return this.buildEmptyPage(page, limit);
     }
 
-    const paginatedIncidents = availableIncidents.slice(
-      (page - 1) * limit,
-      (page - 1) * limit + limit,
-    );
+    const paginatedIncidents = await this.incidentRepository.find({
+      where,
+      order: { id: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
     const items = await this.buildReportsForIncidents(paginatedIncidents);
     return this.buildPageResult(items, page, limit, total);
+  }
+
+  private buildIncidentWhere(params: {
+    companyId: string;
+    availableIncidentIds?: string[];
+    filters: IncidentReportFilters;
+  }): FindOptionsWhere<IncidentOrmEntity> {
+    const where: FindOptionsWhere<IncidentOrmEntity> = {
+      companyId: params.companyId,
+    };
+
+    if (params.availableIncidentIds?.length) {
+      where.id = In(params.availableIncidentIds);
+    }
+
+    const incidentId = params.filters.incidentId?.trim();
+    if (incidentId) {
+      where.id = incidentId;
+    }
+
+    const documentId = params.filters.documentId?.trim();
+    if (documentId) {
+      where.documentId = Like(`%${documentId}%`);
+    }
+
+    const status = params.filters.status?.trim();
+    if (status) {
+      where.status = this.normalizeIncidentStatus(status);
+    }
+
+    return where;
+  }
+
+  private normalizeIncidentStatus(status: string): IncidentStatus {
+    const normalized = status.toUpperCase();
+    const allowed: IncidentStatus[] = [
+      'OPEN',
+      'PARTLY_PROGRESS',
+      'IN_PROGRESS',
+      'RESOLVED',
+    ];
+    if (allowed.includes(normalized as IncidentStatus)) {
+      return normalized as IncidentStatus;
+    }
+
+    throw new BadRequestException(
+      `Invalid incident status filter: ${status}. Allowed: ${allowed.join(', ')}`,
+    );
   }
 
   private async buildReportsForIncidents(incidents: IncidentOrmEntity[]) {

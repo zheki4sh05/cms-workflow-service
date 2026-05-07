@@ -54,14 +54,25 @@ export class IncidentController {
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({ name: 'incidentId', required: false, type: String })
+  @ApiQuery({ name: 'documentId', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, type: String })
   @ApiOkResponse({ type: IncidentReportListResponseDto })
   getReports(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('incidentId') incidentId?: string,
+    @Query('documentId') documentId?: string,
+    @Query('status') status?: string,
   ): Promise<IncidentReportListResponseDto> {
     return this.getIncidentReportListUseCase.execute(
       Number(page ?? '1'),
       Number(limit ?? '10'),
+      {
+        incidentId,
+        documentId,
+        status,
+      },
     ) as Promise<IncidentReportListResponseDto>;
   }
 

@@ -54,6 +54,9 @@ interface IncidentCategoryStats {
 }
 
 interface ManagerIncidentStatsResult {
+  totalIncidents: number;
+  totalFindings: number;
+  totalCases: number;
   new: number;
   assigned: number;
   inReview: number;
@@ -117,11 +120,18 @@ export class GetMyIncidentStatsUseCase {
     }
 
     const fullIncidentIds = incidents.map((item) => item.id);
-    const findings = await this.findingRepository.find({
-      where: {
-        incidentId: In(fullIncidentIds),
-      },
-    });
+    const [findings, allCases] = await Promise.all([
+      this.findingRepository.find({
+        where: {
+          incidentId: In(fullIncidentIds),
+        },
+      }),
+      this.caseRepository.find({
+        where: {
+          incidentId: In(fullIncidentIds),
+        },
+      }),
+    ]);
     const findingsByIncidentId = this.groupBy(findings, (item) => item.incidentId);
 
     const ruleIds = Array.from(
@@ -212,6 +222,9 @@ export class GetMyIncidentStatsUseCase {
     );
 
     return {
+      totalIncidents: incidents.length,
+      totalFindings: findings.length,
+      totalCases: allCases.length,
       new: newCount,
       assigned: assignedCount,
       inReview: inReviewIncidentIds.size,
@@ -226,6 +239,9 @@ export class GetMyIncidentStatsUseCase {
 
   private buildEmptyStats(): ManagerIncidentStatsResult {
     return {
+      totalIncidents: 0,
+      totalFindings: 0,
+      totalCases: 0,
       new: 0,
       assigned: 0,
       inReview: 0,
