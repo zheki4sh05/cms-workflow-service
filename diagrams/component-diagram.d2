@@ -1,0 +1,101 @@
+# NestJS Component Diagram
+
+direction: right
+
+vars: {
+  d2-config: {
+    theme-id: 303
+  }
+}
+
+classes: {
+  component: {
+    shape: rectangle
+    style.fill: "#63BEF2"
+    style.border-radius: 32
+  }
+  container-expanded: {
+    shape: rectangle
+    style.border-radius: 32
+    style.stroke-dash: 3
+    label.near: bottom-left
+    style.stroke: "#666666"
+    style.font-color: "#333333"
+  }
+  container: {
+    shape: rectangle
+    style.fill: "#23A2D9"
+    style.border-radius: 32
+  }
+  system: {
+    shape: rectangle
+    style.fill: "#1061B0"
+    style.border-radius: 32
+  }
+  external-system: {
+    shape: rectangle
+    style.fill: "#8C8496"
+    style.border-radius: 32
+  }
+}
+
+cms_workflow_service: |md
+  ## cms-workflow-service
+  **[Container: NestJS]**
+| {
+  class: [container-expanded]
+}
+
+cms_workflow_service.ActionPlanManagementModule: |md
+  ### ActionPlanManagementModule
+  ---
+  **[Component: NestJS]**
+| {
+  class: [component]
+}
+
+cms_workflow_service.AppModule: |md
+  ### AppModule
+  ---
+  **[Component: NestJS]**
+| {
+  class: [component]
+}
+
+cms_workflow_service.CaseManagementModule: |md
+  ### CaseManagementModule
+  ---
+  **[Component: NestJS]**
+| {
+  class: [component]
+}
+
+cms_workflow_service.IncidentManagementModule: |md
+  ### IncidentManagementModule
+  ---
+  **[Component: NestJS]**
+| {
+  class: [component]
+}
+
+cms_workflow_service.InvestigationManagementModule: |md
+  ### InvestigationManagementModule
+  ---
+  **[Component: NestJS]**
+| {
+  class: [component]
+}
+
+cms_workflow_service.OutboxModule: |md
+  ### OutboxModule
+  ---
+  **[Component: NestJS]**
+| {
+  class: [component]
+}
+
+cms_workflow_service.ActionPlanManagementModule -> cms_workflow_service.CaseManagementModule: imports
+cms_workflow_service.AppModule -> cms_workflow_service.OutboxModule: imports
+cms_workflow_service.AppModule -> cms_workflow_service.IncidentManagementModule: imports
+cms_workflow_service.AppModule -> cms_workflow_service.CaseManagementModule: imports
+cms_workflow_service.AppModule -> cms_workflow_service.ActionPlanManagementModule: imports

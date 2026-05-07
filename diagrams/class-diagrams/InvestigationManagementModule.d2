@@ -1,0 +1,43 @@
+# NestJS Class Diagram - InvestigationManagementModule
+
+direction: down
+
+classes: {
+  container-expanded: {
+    shape: rectangle
+    style.border-radius: 32
+    style.stroke-dash: 3
+    label.near: bottom-left
+    style.stroke: "#666666"
+    style.font-color: "#333333"
+  }
+}
+
+InvestigationManagementModule: InvestigationManagementModule {
+  class: [container-expanded]
+
+  InvestigationController: InvestigationController {
+    shape: class
+    # Dependencies
+    getInvestigationListUseCase: GetInvestigationListUseCase
+    findAll(): any
+  }
+
+  GetInvestigationListUseCase: GetInvestigationListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    investigationRepository: InvestigationRepositoryPort (@Inject('INVESTIGATION_REPOSITORY'))
+    execute(): any
+  }
+
+  InMemoryInvestigationRepository: InMemoryInvestigationRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(investigation: InvestigationEntity): void
+    findAll(): InvestigationEntity\[\]
+  }
+
+}
+
+InvestigationManagementModule.InvestigationController -> InvestigationManagementModule.GetInvestigationListUseCase: depends on

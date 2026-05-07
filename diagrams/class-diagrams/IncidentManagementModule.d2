@@ -1,0 +1,153 @@
+# NestJS Class Diagram - IncidentManagementModule
+
+direction: down
+
+classes: {
+  container-expanded: {
+    shape: rectangle
+    style.border-radius: 32
+    style.stroke-dash: 3
+    label.near: bottom-left
+    style.stroke: "#666666"
+    style.font-color: "#333333"
+  }
+}
+
+IncidentManagementModule: IncidentManagementModule {
+  class: [container-expanded]
+
+  IncidentController: IncidentController {
+    shape: class
+    # Dependencies
+    getMyIncidentListUseCase: GetMyIncidentListUseCase
+    getIncidentReportUseCase: GetIncidentReportUseCase
+    assignIncidentToMeUseCase: AssignIncidentToMeUseCase
+    getIncidentViewUseCase: GetIncidentViewUseCase
+    getIncidentReportListUseCase: GetIncidentReportListUseCase
+    getMyIncidentStatsUseCase: GetMyIncidentStatsUseCase
+    findMy(): MyIncidentResponseDto\[\]
+    getMyStats(): IncidentManagerStatsResponseDto
+    getReports(page: string, limit: string, incidentId: string, documentId: string, status: string): IncidentReportListResponseDto
+    getReport(incidentId: string): any
+    getView(incidentId: string): any
+    assignToMe(incidentId: string): AssignIncidentCaseResponseDto\[\]
+  }
+
+  AssignIncidentToMeUseCase: AssignIncidentToMeUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    dataSource: DataSource
+    incidentRepository: Repository
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(incidentId: string): CaseOrmEntity\[\]
+  }
+
+  GetIncidentListUseCase: GetIncidentListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    incidentRepository: IncidentRepositoryPort (@Inject('INCIDENT_REPOSITORY'))
+    execute(): any
+  }
+
+  GetIncidentReportListUseCase: GetIncidentReportListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    findingRepository: Repository
+    caseRepository: Repository
+    investigationRepository: Repository
+    caseCommentRepository: Repository
+    caseAttachmentRepository: Repository
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    verificationRepository: Repository
+    taskEvidenceRepository: Repository
+    execute(page: number, limit: number, filters: IncidentReportFilters): PaginatedIncidentReport
+  }
+
+  GetIncidentReportUseCase: GetIncidentReportUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    findingRepository: Repository
+    caseRepository: Repository
+    investigationRepository: Repository
+    caseCommentRepository: Repository
+    caseAttachmentRepository: Repository
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    verificationRepository: Repository
+    taskEvidenceRepository: Repository
+    execute(incidentId: string): any
+  }
+
+  GetIncidentViewUseCase: GetIncidentViewUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    incidentRepository: Repository
+    findingRepository: Repository
+    execute(incidentId: string): any
+  }
+
+  GetMyIncidentListUseCase: GetMyIncidentListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(): MyIncidentListItem\[\]
+  }
+
+  GetMyIncidentStatsUseCase: GetMyIncidentStatsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(): ManagerIncidentStatsResult
+  }
+
+  IngestIncidentTopicUseCase: IngestIncidentTopicUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    outboxRepository: OutboxRepositoryPort (@Inject('OUTBOX_REPOSITORY'))
+    execute(message: IncidentTopicMessage): void
+  }
+
+  KafkaIncidentTopicConsumer: KafkaIncidentTopicConsumer {
+    shape: class
+    # Dependencies
+    ingestIncidentTopicUseCase: IngestIncidentTopicUseCase
+    handleIncidentTopic(payload: IncidentTopicMessage | { value: IncidentTopicMessage }, context: KafkaContext): any
+  }
+
+  InMemoryIncidentRepository: InMemoryIncidentRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(incident: IncidentEntity): void
+    findAll(): IncidentEntity\[\]
+  }
+
+}
+
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetMyIncidentListUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetIncidentReportUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.AssignIncidentToMeUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetIncidentViewUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetIncidentReportListUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetMyIncidentStatsUseCase: depends on
+IncidentManagementModule.KafkaIncidentTopicConsumer -> IncidentManagementModule.IngestIncidentTopicUseCase: depends on

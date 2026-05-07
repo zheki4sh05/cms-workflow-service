@@ -1,0 +1,1146 @@
+# NestJS Class Diagram - Global
+
+direction: down
+
+classes: {
+  container-expanded: {
+    shape: rectangle
+    style.border-radius: 32
+    style.stroke-dash: 3
+    label.near: bottom-left
+    style.stroke: "#666666"
+    style.font-color: "#333333"
+  }
+}
+
+CaseManagementModule: CaseManagementModule {
+  class: [container-expanded]
+
+  MinioStorageService: MinioStorageService {
+    shape: class
+    style.fill: "#e3f2fd"
+    uploadCaseAttachment(file: UploadedFile): string
+    downloadAttachment(fileId: string): Promise<{
+    stream: Readable;
+    contentType: string;
+    size: number;
+  }>
+    removeAttachment(fileId: string): void
+  }
+
+  CaseV1Controller: CaseV1Controller {
+    shape: class
+    # Dependencies
+    getMyCaseListUseCase: GetMyCaseListUseCase
+    getMyCaseStatsUseCase: GetMyCaseStatsUseCase
+    getCaseViewListUseCase: GetCaseViewListUseCase
+    addCaseCommentUseCase: AddCaseCommentUseCase
+    addCaseAttachmentUseCase: AddCaseAttachmentUseCase
+    findMy(): MyCaseListItemResponseDto\[\]
+    findMyStats(): MyCaseStatsResponseDto
+    findView(caseId: string): CaseViewListItemResponseDto
+    addComment(caseId: string, body: CreateCaseCommentDto): any
+    addAttachment(caseId: string, file: UploadedBinaryFile): any
+  }
+
+  CaseController: CaseController {
+    shape: class
+    # Dependencies
+    getCaseListUseCase: GetCaseListUseCase
+    rejectCaseUseCase: RejectCaseUseCase
+    reopenCaseUseCase: ReopenCaseUseCase
+    addCaseCommentUseCase: AddCaseCommentUseCase
+    getCaseCommentsUseCase: GetCaseCommentsUseCase
+    addCaseAttachmentUseCase: AddCaseAttachmentUseCase
+    getCaseAttachmentsUseCase: GetCaseAttachmentsUseCase
+    downloadCaseAttachmentUseCase: DownloadCaseAttachmentUseCase
+    deleteCaseAttachmentUseCase: DeleteCaseAttachmentUseCase
+    updateCaseInvestigationUseCase: UpdateCaseInvestigationUseCase
+    findAll(): any
+    reject(caseId: string, body: RejectCaseDto): any
+    reopen(caseId: string): any
+    updateInvestigation(caseId: string, body: UpdateCaseInvestigationDto): any
+    getComments(caseId: string): any
+    addComment(caseId: string, body: CreateCaseCommentDto): any
+    getAttachments(caseId: string): any
+    downloadAttachment(caseId: string, attachmentId: string): any
+    deleteAttachment(caseId: string, attachmentId: string): void
+    addAttachment(caseId: string, file: UploadedBinaryFile): any
+  }
+
+  CaseCollaborationAccessService: CaseCollaborationAccessService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    assertCanCollaborate(targetCase: CaseOrmEntity): AuthUserDto
+    fetchUserRoles(userId: string): string\[\]
+  }
+
+  AddCaseAttachmentUseCase: AddCaseAttachmentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(caseId: string, payload: AddCaseAttachmentPayload): any
+  }
+
+  AddCaseCommentUseCase: AddCaseCommentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    commentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(caseId: string, payload: AddCaseCommentPayload): any
+  }
+
+  DeleteCaseAttachmentUseCase: DeleteCaseAttachmentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(caseId: string, attachmentId: string): void
+  }
+
+  DownloadCaseAttachmentUseCase: DownloadCaseAttachmentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(caseId: string, attachmentId: string): Promise<{
+    stream: Readable;
+    fileName: string;
+    contentType: string;
+    size: number;
+  }>
+  }
+
+  GetCaseAttachmentsUseCase: GetCaseAttachmentsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(caseId: string): any
+  }
+
+  GetCaseCommentsUseCase: GetCaseCommentsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    commentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(caseId: string): any
+  }
+
+  GetCaseListUseCase: GetCaseListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: CaseRepositoryPort (@Inject('CASE_REPOSITORY'))
+    execute(): any
+  }
+
+  GetCaseViewListUseCase: GetCaseViewListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    findingRepository: Repository
+    investigationRepository: Repository
+    execute(caseId: string): CaseViewListItem
+  }
+
+  GetMyCaseListUseCase: GetMyCaseListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(): MyCaseListItem\[\]
+  }
+
+  GetMyCaseStatsUseCase: GetMyCaseStatsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    findingRepository: Repository
+    incidentRepository: Repository
+    execute(): MyCaseStatsResult
+  }
+
+  RejectCaseUseCase: RejectCaseUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanRepository: Repository
+    execute(caseId: string, payload: RejectCasePayload): any
+  }
+
+  ReopenCaseUseCase: ReopenCaseUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    execute(caseId: string): any
+  }
+
+  UpdateCaseInvestigationUseCase: UpdateCaseInvestigationUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    investigationRepository: Repository
+    incidentRepository: Repository
+    execute(caseId: string, payload: UpdateCaseInvestigationPayload): CaseOrmEntity
+  }
+
+  InMemoryCaseRepository: InMemoryCaseRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(caseAggregate: CaseAggregate): void
+    findAll(): CaseAggregate\[\]
+  }
+
+}
+
+ActionPlanManagementModule: ActionPlanManagementModule {
+  class: [container-expanded]
+
+  ActionPlanController: ActionPlanController {
+    shape: class
+    # Dependencies
+    getActionPlanListUseCase: GetActionPlanListUseCase
+    createActionPlanUseCase: CreateActionPlanUseCase
+    updateActionPlanUseCase: UpdateActionPlanUseCase
+    submitActionPlanUseCase: SubmitActionPlanUseCase
+    approveVerificationUseCase: ApproveVerificationUseCase
+    returnActionPlanForRevisionUseCase: ReturnActionPlanForRevisionUseCase
+    addActionPlanTaskEvidenceUseCase: AddActionPlanTaskEvidenceUseCase
+    getActionPlanTaskEvidencesUseCase: GetActionPlanTaskEvidencesUseCase
+    downloadActionPlanTaskEvidenceUseCase: DownloadActionPlanTaskEvidenceUseCase
+    findAll(): any
+    create(body: CreateActionPlanDto): any
+    update(planId: string, body: UpdateActionPlanDto): any
+    submit(planId: string): any
+    confirm(planId: string, body: ConfirmActionPlanDto): any
+    returnForRevision(planId: string, body: ReturnActionPlanForRevisionDto): any
+    addTaskEvidence(actionPlanId: string, taskId: string, file: UploadedBinaryFile): any
+    getTaskEvidences(actionPlanId: string, taskId: string): any
+    downloadTaskEvidence(actionPlanId: string, taskId: string, evidenceId: string): any
+  }
+
+  SupervisorVerificationController: SupervisorVerificationController {
+    shape: class
+    # Dependencies
+    approveVerificationUseCase: ApproveVerificationUseCase
+    approve(actionPlanId: string, body: ApproveVerificationDto): any
+  }
+
+  TaskController: TaskController {
+    shape: class
+    # Dependencies
+    getMyTasksUseCase: GetMyTasksUseCase
+    getMyTaskStatsUseCase: GetMyTaskStatsUseCase
+    getTaskByIdUseCase: GetTaskByIdUseCase
+    updateTaskUseCase: UpdateTaskUseCase
+    completeTaskUseCase: CompleteTaskUseCase
+    addTaskEvidenceUseCase: AddTaskEvidenceUseCase
+    getMy(): any
+    getMyStats(): TaskStatsResponseDto
+    getById(taskId: string): any
+    update(taskId: string, body: UpdateTaskDto): any
+    complete(taskId: string, body: CompleteTaskDto): any
+    addEvidence(taskId: string, file: UploadedBinaryFile): any
+  }
+
+  ActionPlanTaskAccessService: ActionPlanTaskAccessService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    fetchCurrentUser(): AuthUserDto
+    fetchUserRoles(userId: string): string\[\]
+    getTaskContext(taskId: string): Promise<{
+    task: ActionPlanTaskOrmEntity;
+    actionPlan: ActionPlanOrmEntity;
+    currentCase: CaseOrmEntity;
+    incident: IncidentOrmEntity;
+  }>
+  }
+
+  AddActionPlanTaskEvidenceUseCase: AddActionPlanTaskEvidenceUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    evidenceRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(actionPlanId: string, taskId: string, payload: AddActionPlanTaskEvidencePayload): any
+  }
+
+  AddTaskEvidenceUseCase: AddTaskEvidenceUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    evidenceRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    minioStorageService: MinioStorageService
+    execute(taskId: string, payload: AddTaskEvidencePayload): any
+  }
+
+  ApproveVerificationUseCase: ApproveVerificationUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanRepository: Repository
+    verificationRepository: Repository
+    caseRepository: Repository
+    execute(actionPlanId: string, payload: ApproveVerificationPayload): CaseOrmEntity
+  }
+
+  CompleteTaskUseCase: CompleteTaskUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(taskId: string, payload: CompleteTaskPayload): any
+  }
+
+  CreateActionPlanUseCase: CreateActionPlanUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    dataSource: DataSource
+    caseRepository: Repository
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    execute(payload: CreateActionPlanPayload): any
+  }
+
+  DownloadActionPlanTaskEvidenceUseCase: DownloadActionPlanTaskEvidenceUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    evidenceRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(actionPlanId: string, taskId: string, evidenceId: string): \"\{ stream: Readable; fileName: string; contentType: string \}\"
+  }
+
+  GetActionPlanListUseCase: GetActionPlanListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    findingRepository: Repository
+    execute(): ActionPlanListItemResult\[\]
+  }
+
+  GetActionPlanTaskEvidencesUseCase: GetActionPlanTaskEvidencesUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    evidenceRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(actionPlanId: string, taskId: string): any
+  }
+
+  GetMyTaskStatsUseCase: GetMyTaskStatsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(): TaskStatsResult
+  }
+
+  GetMyTasksUseCase: GetMyTasksUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(): any
+  }
+
+  GetTaskByIdUseCase: GetTaskByIdUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(taskId: string): any
+  }
+
+  ReturnActionPlanForRevisionUseCase: ReturnActionPlanForRevisionUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanRepository: Repository
+    verificationRepository: Repository
+    caseRepository: Repository
+    execute(actionPlanId: string, payload: ReturnForRevisionPayload): CaseOrmEntity
+  }
+
+  SubmitActionPlanUseCase: SubmitActionPlanUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    verificationRepository: Repository
+    execute(planId: string): CaseOrmEntity
+  }
+
+  UpdateActionPlanUseCase: UpdateActionPlanUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    execute(planId: string, payload: UpdateActionPlanPayload): any
+  }
+
+  UpdateTaskUseCase: UpdateTaskUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(taskId: string, payload: UpdateTaskPayload): any
+  }
+
+  InMemoryActionPlanRepository: InMemoryActionPlanRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(actionPlan: ActionPlanEntity): void
+    findAll(): ActionPlanEntity\[\]
+  }
+
+}
+
+IncidentManagementModule: IncidentManagementModule {
+  class: [container-expanded]
+
+  IncidentController: IncidentController {
+    shape: class
+    # Dependencies
+    getMyIncidentListUseCase: GetMyIncidentListUseCase
+    getIncidentReportUseCase: GetIncidentReportUseCase
+    assignIncidentToMeUseCase: AssignIncidentToMeUseCase
+    getIncidentViewUseCase: GetIncidentViewUseCase
+    getIncidentReportListUseCase: GetIncidentReportListUseCase
+    getMyIncidentStatsUseCase: GetMyIncidentStatsUseCase
+    findMy(): MyIncidentResponseDto\[\]
+    getMyStats(): IncidentManagerStatsResponseDto
+    getReports(page: string, limit: string, incidentId: string, documentId: string, status: string): IncidentReportListResponseDto
+    getReport(incidentId: string): any
+    getView(incidentId: string): any
+    assignToMe(incidentId: string): AssignIncidentCaseResponseDto\[\]
+  }
+
+  AssignIncidentToMeUseCase: AssignIncidentToMeUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    dataSource: DataSource
+    incidentRepository: Repository
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(incidentId: string): CaseOrmEntity\[\]
+  }
+
+  GetIncidentListUseCase: GetIncidentListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    incidentRepository: IncidentRepositoryPort (@Inject('INCIDENT_REPOSITORY'))
+    execute(): any
+  }
+
+  GetIncidentReportListUseCase: GetIncidentReportListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    findingRepository: Repository
+    caseRepository: Repository
+    investigationRepository: Repository
+    caseCommentRepository: Repository
+    caseAttachmentRepository: Repository
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    verificationRepository: Repository
+    taskEvidenceRepository: Repository
+    execute(page: number, limit: number, filters: IncidentReportFilters): PaginatedIncidentReport
+  }
+
+  GetIncidentReportUseCase: GetIncidentReportUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    findingRepository: Repository
+    caseRepository: Repository
+    investigationRepository: Repository
+    caseCommentRepository: Repository
+    caseAttachmentRepository: Repository
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    verificationRepository: Repository
+    taskEvidenceRepository: Repository
+    execute(incidentId: string): any
+  }
+
+  GetIncidentViewUseCase: GetIncidentViewUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    incidentRepository: Repository
+    findingRepository: Repository
+    execute(incidentId: string): any
+  }
+
+  GetMyIncidentListUseCase: GetMyIncidentListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(): MyIncidentListItem\[\]
+  }
+
+  GetMyIncidentStatsUseCase: GetMyIncidentStatsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    incidentRepository: Repository
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(): ManagerIncidentStatsResult
+  }
+
+  IngestIncidentTopicUseCase: IngestIncidentTopicUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    outboxRepository: OutboxRepositoryPort (@Inject('OUTBOX_REPOSITORY'))
+    execute(message: IncidentTopicMessage): void
+  }
+
+  KafkaIncidentTopicConsumer: KafkaIncidentTopicConsumer {
+    shape: class
+    # Dependencies
+    ingestIncidentTopicUseCase: IngestIncidentTopicUseCase
+    handleIncidentTopic(payload: IncidentTopicMessage | { value: IncidentTopicMessage }, context: KafkaContext): any
+  }
+
+  InMemoryIncidentRepository: InMemoryIncidentRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(incident: IncidentEntity): void
+    findAll(): IncidentEntity\[\]
+  }
+
+}
+
+InvestigationManagementModule: InvestigationManagementModule {
+  class: [container-expanded]
+
+  InvestigationController: InvestigationController {
+    shape: class
+    # Dependencies
+    getInvestigationListUseCase: GetInvestigationListUseCase
+    findAll(): any
+  }
+
+  GetInvestigationListUseCase: GetInvestigationListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    investigationRepository: InvestigationRepositoryPort (@Inject('INVESTIGATION_REPOSITORY'))
+    execute(): any
+  }
+
+  InMemoryInvestigationRepository: InMemoryInvestigationRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(investigation: InvestigationEntity): void
+    findAll(): InvestigationEntity\[\]
+  }
+
+}
+
+OutboxModule: OutboxModule {
+  class: [container-expanded]
+
+  IncidentResolverService: IncidentResolverService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    dataSource: DataSource
+    resolveOutboxMessage(message: OutboxMessageEntity): void
+  }
+
+  OutboxProcessorService: OutboxProcessorService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    outboxRepository: OutboxRepositoryPort (@Inject('OUTBOX_REPOSITORY'))
+    incidentResolverService: IncidentResolverService
+    processPendingMessages(): any
+  }
+
+  PostgresOutboxRepository: PostgresOutboxRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    outboxRepository: Repository
+    add(message: OutboxMessageEntity): void
+    getPending(limit: number): OutboxMessageEntity\[\]
+    getStatusStats(): Record<string, number>
+    deleteProcessed(): number
+    markProcessed(id: string): void
+    markFailed(id: string, errorMessage: string): void
+  }
+
+}
+
+AppService: AppService {
+  shape: class
+  style.fill: "#e3f2fd"
+  getHello(): string
+}
+
+ActionPlanTaskOrmEntity: ActionPlanTaskOrmEntity {
+  shape: class
+  id: string
+  actionPlan: ActionPlanOrmEntity
+  actionPlanId: string
+  title: string
+  description: string
+  priority: ActionPlanTaskPriority
+  dueDate: Date
+  status: ActionPlanTaskStatus
+  evidenceDescriptionInprogress: string
+  evidenceDescriptionDone: string
+  completedAt: Date
+}
+
+ActionPlanOrmEntity: ActionPlanOrmEntity {
+  shape: class
+  id: string
+  case: CaseOrmEntity
+  caseId: string
+  incident: IncidentOrmEntity
+  incidentId: string
+  title: string
+  description: string
+  comment: string
+  showTasks: boolean
+  tasks: ActionPlanTaskOrmEntity
+}
+
+VerificationOrmEntity: VerificationOrmEntity {
+  shape: class
+  id: string
+  actionPlan: ActionPlanOrmEntity
+  actionPlanId: string
+  verified: boolean
+  assignedUserForVerification: string
+  assignedEmployeeForVerification: string
+  comments: string
+}
+
+CaseOrmEntity: CaseOrmEntity {
+  shape: class
+  id: string
+  incident: IncidentOrmEntity
+  incidentId: string
+  assignedUserId: string
+  status: CaseStatus
+  finding: FindingOrmEntity
+  findingId: string
+  investigation: InvestigationOrmEntity
+}
+
+FindingOrmEntity: FindingOrmEntity {
+  shape: class
+  id: string
+  priority: string
+  assignedUserId: string
+  rulesId: string
+  detectedAt: Date
+  deadline: Date
+  details: Record
+  incident: IncidentOrmEntity
+  incidentId: string
+  cases: CaseOrmEntity
+}
+
+IncidentOrmEntity: IncidentOrmEntity {
+  shape: class
+  id: string
+  companyId: string
+  integrationId: number
+  riskObjectId: string
+  departmentId: string
+  documentId: string
+  status: IncidentStatus
+  resolvedDate: Date
+}
+
+InvestigationOrmEntity: InvestigationOrmEntity {
+  shape: class
+  id: string
+  case: CaseOrmEntity
+  caseId: string
+  investigationNotes: string
+  rootCause: string
+  requiresCorrectiveAction: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+ActionTaskListItemDto: ActionTaskListItemDto {
+  shape: class
+  id: string
+  title: string
+  assigneeId: string
+  status: string
+  dueAt: Date
+}
+
+TaskResponseDto: TaskResponseDto {
+  shape: class
+  id: string
+  actionPlanId: string
+  caseId: string
+  caseStatus: string
+  incidentId: string
+  documentId: string
+  incidentStatus: string
+  comment: string
+  actionPlanTitle: string
+  actionPlanDescription: string
+  actionPlanComment: string
+  title: string
+  description: string
+  priority: string
+  dueDate: Date
+  status: string
+  evidenceDescriptionInprogress: string
+  evidenceDescriptionDone: string
+  completedAt: Date
+}
+
+TaskStatsResponseDto: TaskStatsResponseDto {
+  shape: class
+  total: number
+  todo: number
+  inProgress: number
+  done: number
+  overdue: number
+  dueToday: number
+  dueTodayIds: string
+  dueTomorrow: number
+  dueTomorrowIds: string
+}
+
+ApproveVerificationDto: ApproveVerificationDto {
+  shape: class
+  approved: boolean
+  comments: string
+}
+
+CompleteTaskDto: CompleteTaskDto {
+  shape: class
+  evidenceDescription: string
+}
+
+ConfirmActionPlanDto: ConfirmActionPlanDto {
+  shape: class
+  comments: string
+  comment: string
+}
+
+CreateActionPlanDto: CreateActionPlanDto {
+  shape: class
+  caseId: string
+  title: string
+  description: string
+  tasks: string
+}
+
+ReturnActionPlanForRevisionDto: ReturnActionPlanForRevisionDto {
+  shape: class
+  comments: string
+  comment: string
+}
+
+UpdateActionPlanDto: UpdateActionPlanDto {
+  shape: class
+  title: string
+  description: string
+  comment: string
+}
+
+UpdateTaskDto: UpdateTaskDto {
+  shape: class
+  status: string
+  evidenceDescription: string
+}
+
+InvestigationInCaseResponseDto: InvestigationInCaseResponseDto {
+  shape: class
+  id: string
+  caseId: string
+  investigationNotes: string
+  rootCause: string
+  requiresCorrectiveAction: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+MyCaseStatsResponseDto: MyCaseStatsResponseDto {
+  shape: class
+  total: number
+  ASSIGNED: number
+  ACTION_PLAN: number
+  OPEN: number
+  INVESTIGATING: number
+  WAITING_VERIFICATION: number
+  ACTION_IN_PROGRESS: number
+  IN_PROGRESS: number
+  REJECTED: number
+  CLOSED: number
+  avgResolutionTime: number
+}
+
+CaseViewListItemResponseDto: CaseViewListItemResponseDto {
+  shape: class
+  ruleId: string
+  ruleName: string
+  ruleCondition: string
+  details: Record
+  investigationNotes: string
+  rootCause: string
+  requiresCorrectiveAction: boolean
+  updatedAt: Date
+}
+
+CreateCaseCommentDto: CreateCaseCommentDto {
+  shape: class
+  content: string
+}
+
+RejectCaseDto: RejectCaseDto {
+  shape: class
+  comment: string
+}
+
+UpdateCaseInvestigationDto: UpdateCaseInvestigationDto {
+  shape: class
+  investigationNotes: string
+  rootCause: string
+  requiresCorrectiveAction: boolean
+}
+
+IncidentResponseDto: IncidentResponseDto {
+  shape: class
+  id: string
+  companyId: string
+  integrationId: number
+  riskObjectId: string
+  riskObjectName: string
+  documentId: string
+  integrationName: string
+  status: string
+}
+
+IncidentStatsByCategoryDto: IncidentStatsByCategoryDto {
+  shape: class
+  categoryId: string
+  categoryName: string
+  incidentCount: number
+}
+
+IncidentManagerStatsResponseDto: IncidentManagerStatsResponseDto {
+  shape: class
+  totalIncidents: number
+  totalFindings: number
+  totalCases: number
+  new: number
+  assigned: number
+  inReview: number
+  resolved: number
+  bySeverity: \"\{ low: number; medium: number; high: number; \}\"
+  byCategory: IncidentStatsByCategoryDto
+  avgResolutionTime: number
+}
+
+InvestigationReportDto: InvestigationReportDto {
+  shape: class
+  id: string
+  caseId: string
+  investigationNotes: string
+  rootCause: string
+  requiresCorrectiveAction: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+CaseCommentReportDto: CaseCommentReportDto {
+  shape: class
+  id: string
+  userId: string
+  firstName: string
+  lastName: string
+  comment: string
+  time: Date
+}
+
+CaseAttachmentReportDto: CaseAttachmentReportDto {
+  shape: class
+  id: string
+  userId: string
+  firstName: string
+  lastName: string
+  fileId: string
+  name: string
+  size: number
+  time: Date
+}
+
+TaskEvidenceReportDto: TaskEvidenceReportDto {
+  shape: class
+  id: string
+  userId: string
+  fileId: string
+  name: string
+  time: Date
+}
+
+ActionPlanTaskReportDto: ActionPlanTaskReportDto {
+  shape: class
+  id: string
+  title: string
+  description: string
+  priority: string
+  dueDate: Date
+  status: string
+  evidenceDescriptionInprogress: string
+  evidenceDescriptionDone: string
+  completedAt: Date
+  evidences: TaskEvidenceReportDto
+}
+
+VerificationReportDto: VerificationReportDto {
+  shape: class
+  id: string
+  actionPlanId: string
+  verified: boolean
+  assignedUserForVerification: string
+  assignedEmployeeForVerification: string
+  comments: string
+}
+
+ActionPlanReportDto: ActionPlanReportDto {
+  shape: class
+  id: string
+  incidentId: string
+  caseId: string
+  title: string
+  description: string
+  comment: string
+  verification: VerificationReportDto
+  tasks: ActionPlanTaskReportDto
+}
+
+CaseReportDto: CaseReportDto {
+  shape: class
+  id: string
+  incidentId: string
+  findingId: string
+  assignedUserId: string
+  status: string
+  investigation: InvestigationReportDto
+  comments: CaseCommentReportDto
+  attachments: CaseAttachmentReportDto
+  actionPlan: ActionPlanReportDto
+}
+
+FindingReportDto: FindingReportDto {
+  shape: class
+  id: string
+  priority: string
+  assignedUserId: string
+  ruleName: string
+  firstName: string
+  lastName: string
+  details: Record
+  cases: CaseReportDto
+}
+
+FindingViewResponseDto: FindingViewResponseDto {
+  shape: class
+  id: string
+  priority: string
+  assignedUserId: string
+  rulesId: string
+  detectedAt: Date
+  details: Record
+  incidentId: string
+}
+
+AssignIncidentCaseResponseDto: AssignIncidentCaseResponseDto {
+  shape: class
+  id: string
+  incidentId: string
+  findingId: string
+  assignedUserId: string
+  status: string
+  investigation: InvestigationReportDto
+}
+
+IncidentReportListItemDto: IncidentReportListItemDto {
+  shape: class
+  incident: IncidentResponseDto
+  findings: FindingReportDto
+}
+
+IncidentReportListResponseDto: IncidentReportListResponseDto {
+  shape: class
+  items: IncidentReportListItemDto
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.GetActionPlanListUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.CreateActionPlanUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.UpdateActionPlanUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.SubmitActionPlanUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.ApproveVerificationUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.ReturnActionPlanForRevisionUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.AddActionPlanTaskEvidenceUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.GetActionPlanTaskEvidencesUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.DownloadActionPlanTaskEvidenceUseCase: depends on
+ActionPlanManagementModule.SupervisorVerificationController -> ActionPlanManagementModule.ApproveVerificationUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.GetMyTasksUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.GetMyTaskStatsUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.GetTaskByIdUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.UpdateTaskUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.CompleteTaskUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.AddTaskEvidenceUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.GetMyCaseListUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.GetMyCaseStatsUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.GetCaseViewListUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.AddCaseCommentUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.AddCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.GetCaseListUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.RejectCaseUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.ReopenCaseUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.AddCaseCommentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.GetCaseCommentsUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.AddCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.GetCaseAttachmentsUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.DownloadCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.DeleteCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.UpdateCaseInvestigationUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetMyIncidentListUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetIncidentReportUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.AssignIncidentToMeUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetIncidentViewUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetIncidentReportListUseCase: depends on
+IncidentManagementModule.IncidentController -> IncidentManagementModule.GetMyIncidentStatsUseCase: depends on
+InvestigationManagementModule.InvestigationController -> InvestigationManagementModule.GetInvestigationListUseCase: depends on
+ActionPlanManagementModule.ActionPlanTaskAccessService -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.AddActionPlanTaskEvidenceUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.AddActionPlanTaskEvidenceUseCase -> CaseManagementModule.MinioStorageService: depends on
+ActionPlanManagementModule.AddTaskEvidenceUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.AddTaskEvidenceUseCase -> CaseManagementModule.MinioStorageService: depends on
+ActionPlanManagementModule.CompleteTaskUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.DownloadActionPlanTaskEvidenceUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.DownloadActionPlanTaskEvidenceUseCase -> CaseManagementModule.MinioStorageService: depends on
+ActionPlanManagementModule.GetActionPlanListUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.GetActionPlanListUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.GetActionPlanTaskEvidencesUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.GetMyTaskStatsUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.GetMyTasksUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.GetTaskByIdUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.UpdateActionPlanUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.UpdateTaskUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+CaseManagementModule.AddCaseAttachmentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.AddCaseAttachmentUseCase -> CaseManagementModule.MinioStorageService: depends on
+CaseManagementModule.AddCaseCommentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.DeleteCaseAttachmentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.DeleteCaseAttachmentUseCase -> CaseManagementModule.MinioStorageService: depends on
+CaseManagementModule.DownloadCaseAttachmentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.DownloadCaseAttachmentUseCase -> CaseManagementModule.MinioStorageService: depends on
+CaseManagementModule.GetCaseAttachmentsUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.GetCaseCommentsUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+OutboxModule.OutboxProcessorService -> OutboxModule.IncidentResolverService: depends on
+IncidentManagementModule.KafkaIncidentTopicConsumer -> IncidentManagementModule.IngestIncidentTopicUseCase: depends on

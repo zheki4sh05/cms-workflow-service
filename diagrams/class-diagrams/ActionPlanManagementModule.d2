@@ -1,0 +1,322 @@
+# NestJS Class Diagram - ActionPlanManagementModule
+
+direction: down
+
+classes: {
+  container-expanded: {
+    shape: rectangle
+    style.border-radius: 32
+    style.stroke-dash: 3
+    label.near: bottom-left
+    style.stroke: "#666666"
+    style.font-color: "#333333"
+  }
+}
+
+ActionPlanManagementModule: ActionPlanManagementModule {
+  class: [container-expanded]
+
+  ActionPlanController: ActionPlanController {
+    shape: class
+    # Dependencies
+    getActionPlanListUseCase: GetActionPlanListUseCase
+    createActionPlanUseCase: CreateActionPlanUseCase
+    updateActionPlanUseCase: UpdateActionPlanUseCase
+    submitActionPlanUseCase: SubmitActionPlanUseCase
+    approveVerificationUseCase: ApproveVerificationUseCase
+    returnActionPlanForRevisionUseCase: ReturnActionPlanForRevisionUseCase
+    addActionPlanTaskEvidenceUseCase: AddActionPlanTaskEvidenceUseCase
+    getActionPlanTaskEvidencesUseCase: GetActionPlanTaskEvidencesUseCase
+    downloadActionPlanTaskEvidenceUseCase: DownloadActionPlanTaskEvidenceUseCase
+    findAll(): any
+    create(body: CreateActionPlanDto): any
+    update(planId: string, body: UpdateActionPlanDto): any
+    submit(planId: string): any
+    confirm(planId: string, body: ConfirmActionPlanDto): any
+    returnForRevision(planId: string, body: ReturnActionPlanForRevisionDto): any
+    addTaskEvidence(actionPlanId: string, taskId: string, file: UploadedBinaryFile): any
+    getTaskEvidences(actionPlanId: string, taskId: string): any
+    downloadTaskEvidence(actionPlanId: string, taskId: string, evidenceId: string): any
+  }
+
+  SupervisorVerificationController: SupervisorVerificationController {
+    shape: class
+    # Dependencies
+    approveVerificationUseCase: ApproveVerificationUseCase
+    approve(actionPlanId: string, body: ApproveVerificationDto): any
+  }
+
+  TaskController: TaskController {
+    shape: class
+    # Dependencies
+    getMyTasksUseCase: GetMyTasksUseCase
+    getMyTaskStatsUseCase: GetMyTaskStatsUseCase
+    getTaskByIdUseCase: GetTaskByIdUseCase
+    updateTaskUseCase: UpdateTaskUseCase
+    completeTaskUseCase: CompleteTaskUseCase
+    addTaskEvidenceUseCase: AddTaskEvidenceUseCase
+    getMy(): any
+    getMyStats(): TaskStatsResponseDto
+    getById(taskId: string): any
+    update(taskId: string, body: UpdateTaskDto): any
+    complete(taskId: string, body: CompleteTaskDto): any
+    addEvidence(taskId: string, file: UploadedBinaryFile): any
+  }
+
+  ActionPlanTaskAccessService: ActionPlanTaskAccessService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    fetchCurrentUser(): AuthUserDto
+    fetchUserRoles(userId: string): string\[\]
+    getTaskContext(taskId: string): Promise<{
+    task: ActionPlanTaskOrmEntity;
+    actionPlan: ActionPlanOrmEntity;
+    currentCase: CaseOrmEntity;
+    incident: IncidentOrmEntity;
+  }>
+  }
+
+  AddActionPlanTaskEvidenceUseCase: AddActionPlanTaskEvidenceUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    evidenceRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(actionPlanId: string, taskId: string, payload: AddActionPlanTaskEvidencePayload): any
+  }
+
+  AddTaskEvidenceUseCase: AddTaskEvidenceUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    evidenceRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    minioStorageService: MinioStorageService
+    execute(taskId: string, payload: AddTaskEvidencePayload): any
+  }
+
+  ApproveVerificationUseCase: ApproveVerificationUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanRepository: Repository
+    verificationRepository: Repository
+    caseRepository: Repository
+    execute(actionPlanId: string, payload: ApproveVerificationPayload): CaseOrmEntity
+  }
+
+  CompleteTaskUseCase: CompleteTaskUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(taskId: string, payload: CompleteTaskPayload): any
+  }
+
+  CreateActionPlanUseCase: CreateActionPlanUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    dataSource: DataSource
+    caseRepository: Repository
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    execute(payload: CreateActionPlanPayload): any
+  }
+
+  DownloadActionPlanTaskEvidenceUseCase: DownloadActionPlanTaskEvidenceUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    evidenceRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(actionPlanId: string, taskId: string, evidenceId: string): \"\{ stream: Readable; fileName: string; contentType: string \}\"
+  }
+
+  GetActionPlanListUseCase: GetActionPlanListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    actionPlanRepository: Repository
+    actionPlanTaskRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    findingRepository: Repository
+    execute(): ActionPlanListItemResult\[\]
+  }
+
+  GetActionPlanTaskEvidencesUseCase: GetActionPlanTaskEvidencesUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    evidenceRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(actionPlanId: string, taskId: string): any
+  }
+
+  GetMyTaskStatsUseCase: GetMyTaskStatsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(): TaskStatsResult
+  }
+
+  GetMyTasksUseCase: GetMyTasksUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(): any
+  }
+
+  GetTaskByIdUseCase: GetTaskByIdUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(taskId: string): any
+  }
+
+  ReturnActionPlanForRevisionUseCase: ReturnActionPlanForRevisionUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanRepository: Repository
+    verificationRepository: Repository
+    caseRepository: Repository
+    execute(actionPlanId: string, payload: ReturnForRevisionPayload): CaseOrmEntity
+  }
+
+  SubmitActionPlanUseCase: SubmitActionPlanUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    verificationRepository: Repository
+    execute(planId: string): CaseOrmEntity
+  }
+
+  UpdateActionPlanUseCase: UpdateActionPlanUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    actionPlanRepository: Repository
+    caseRepository: Repository
+    execute(planId: string, payload: UpdateActionPlanPayload): any
+  }
+
+  UpdateTaskUseCase: UpdateTaskUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    actionPlanTaskRepository: Repository
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanTaskAccessService: ActionPlanTaskAccessService
+    execute(taskId: string, payload: UpdateTaskPayload): any
+  }
+
+  InMemoryActionPlanRepository: InMemoryActionPlanRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(actionPlan: ActionPlanEntity): void
+    findAll(): ActionPlanEntity\[\]
+  }
+
+}
+
+CaseManagementModule: CaseManagementModule {
+  class: [container-expanded]
+
+  CaseCollaborationAccessService: CaseCollaborationAccessService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    assertCanCollaborate(targetCase: CaseOrmEntity): AuthUserDto
+    fetchUserRoles(userId: string): string\[\]
+  }
+
+  MinioStorageService: MinioStorageService {
+    shape: class
+    style.fill: "#e3f2fd"
+    uploadCaseAttachment(file: UploadedFile): string
+    downloadAttachment(fileId: string): Promise<{
+    stream: Readable;
+    contentType: string;
+    size: number;
+  }>
+    removeAttachment(fileId: string): void
+  }
+
+}
+
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.GetActionPlanListUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.CreateActionPlanUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.UpdateActionPlanUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.SubmitActionPlanUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.ApproveVerificationUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.ReturnActionPlanForRevisionUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.AddActionPlanTaskEvidenceUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.GetActionPlanTaskEvidencesUseCase: depends on
+ActionPlanManagementModule.ActionPlanController -> ActionPlanManagementModule.DownloadActionPlanTaskEvidenceUseCase: depends on
+ActionPlanManagementModule.SupervisorVerificationController -> ActionPlanManagementModule.ApproveVerificationUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.GetMyTasksUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.GetMyTaskStatsUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.GetTaskByIdUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.UpdateTaskUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.CompleteTaskUseCase: depends on
+ActionPlanManagementModule.TaskController -> ActionPlanManagementModule.AddTaskEvidenceUseCase: depends on
+ActionPlanManagementModule.ActionPlanTaskAccessService -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.AddActionPlanTaskEvidenceUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.AddActionPlanTaskEvidenceUseCase -> CaseManagementModule.MinioStorageService: depends on
+ActionPlanManagementModule.AddTaskEvidenceUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.AddTaskEvidenceUseCase -> CaseManagementModule.MinioStorageService: depends on
+ActionPlanManagementModule.CompleteTaskUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.DownloadActionPlanTaskEvidenceUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.DownloadActionPlanTaskEvidenceUseCase -> CaseManagementModule.MinioStorageService: depends on
+ActionPlanManagementModule.GetActionPlanListUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.GetActionPlanListUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.GetActionPlanTaskEvidencesUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.GetMyTaskStatsUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.GetMyTasksUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.GetTaskByIdUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on
+ActionPlanManagementModule.UpdateActionPlanUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+ActionPlanManagementModule.UpdateTaskUseCase -> ActionPlanManagementModule.ActionPlanTaskAccessService: depends on

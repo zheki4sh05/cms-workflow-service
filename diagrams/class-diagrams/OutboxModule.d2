@@ -1,0 +1,51 @@
+# NestJS Class Diagram - OutboxModule
+
+direction: down
+
+classes: {
+  container-expanded: {
+    shape: rectangle
+    style.border-radius: 32
+    style.stroke-dash: 3
+    label.near: bottom-left
+    style.stroke: "#666666"
+    style.font-color: "#333333"
+  }
+}
+
+OutboxModule: OutboxModule {
+  class: [container-expanded]
+
+  IncidentResolverService: IncidentResolverService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    dataSource: DataSource
+    resolveOutboxMessage(message: OutboxMessageEntity): void
+  }
+
+  OutboxProcessorService: OutboxProcessorService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    outboxRepository: OutboxRepositoryPort (@Inject('OUTBOX_REPOSITORY'))
+    incidentResolverService: IncidentResolverService
+    processPendingMessages(): any
+  }
+
+  PostgresOutboxRepository: PostgresOutboxRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    outboxRepository: Repository
+    add(message: OutboxMessageEntity): void
+    getPending(limit: number): OutboxMessageEntity\[\]
+    getStatusStats(): Record<string, number>
+    deleteProcessed(): number
+    markProcessed(id: string): void
+    markFailed(id: string, errorMessage: string): void
+  }
+
+}
+
+OutboxModule.OutboxProcessorService -> OutboxModule.IncidentResolverService: depends on

@@ -1,0 +1,252 @@
+# NestJS Class Diagram - CaseManagementModule
+
+direction: down
+
+classes: {
+  container-expanded: {
+    shape: rectangle
+    style.border-radius: 32
+    style.stroke-dash: 3
+    label.near: bottom-left
+    style.stroke: "#666666"
+    style.font-color: "#333333"
+  }
+}
+
+CaseManagementModule: CaseManagementModule {
+  class: [container-expanded]
+
+  MinioStorageService: MinioStorageService {
+    shape: class
+    style.fill: "#e3f2fd"
+    uploadCaseAttachment(file: UploadedFile): string
+    downloadAttachment(fileId: string): Promise<{
+    stream: Readable;
+    contentType: string;
+    size: number;
+  }>
+    removeAttachment(fileId: string): void
+  }
+
+  CaseV1Controller: CaseV1Controller {
+    shape: class
+    # Dependencies
+    getMyCaseListUseCase: GetMyCaseListUseCase
+    getMyCaseStatsUseCase: GetMyCaseStatsUseCase
+    getCaseViewListUseCase: GetCaseViewListUseCase
+    addCaseCommentUseCase: AddCaseCommentUseCase
+    addCaseAttachmentUseCase: AddCaseAttachmentUseCase
+    findMy(): MyCaseListItemResponseDto\[\]
+    findMyStats(): MyCaseStatsResponseDto
+    findView(caseId: string): CaseViewListItemResponseDto
+    addComment(caseId: string, body: CreateCaseCommentDto): any
+    addAttachment(caseId: string, file: UploadedBinaryFile): any
+  }
+
+  CaseController: CaseController {
+    shape: class
+    # Dependencies
+    getCaseListUseCase: GetCaseListUseCase
+    rejectCaseUseCase: RejectCaseUseCase
+    reopenCaseUseCase: ReopenCaseUseCase
+    addCaseCommentUseCase: AddCaseCommentUseCase
+    getCaseCommentsUseCase: GetCaseCommentsUseCase
+    addCaseAttachmentUseCase: AddCaseAttachmentUseCase
+    getCaseAttachmentsUseCase: GetCaseAttachmentsUseCase
+    downloadCaseAttachmentUseCase: DownloadCaseAttachmentUseCase
+    deleteCaseAttachmentUseCase: DeleteCaseAttachmentUseCase
+    updateCaseInvestigationUseCase: UpdateCaseInvestigationUseCase
+    findAll(): any
+    reject(caseId: string, body: RejectCaseDto): any
+    reopen(caseId: string): any
+    updateInvestigation(caseId: string, body: UpdateCaseInvestigationDto): any
+    getComments(caseId: string): any
+    addComment(caseId: string, body: CreateCaseCommentDto): any
+    getAttachments(caseId: string): any
+    downloadAttachment(caseId: string, attachmentId: string): any
+    deleteAttachment(caseId: string, attachmentId: string): void
+    addAttachment(caseId: string, file: UploadedBinaryFile): any
+  }
+
+  CaseCollaborationAccessService: CaseCollaborationAccessService {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    assertCanCollaborate(targetCase: CaseOrmEntity): AuthUserDto
+    fetchUserRoles(userId: string): string\[\]
+  }
+
+  AddCaseAttachmentUseCase: AddCaseAttachmentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(caseId: string, payload: AddCaseAttachmentPayload): any
+  }
+
+  AddCaseCommentUseCase: AddCaseCommentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    commentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(caseId: string, payload: AddCaseCommentPayload): any
+  }
+
+  DeleteCaseAttachmentUseCase: DeleteCaseAttachmentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(caseId: string, attachmentId: string): void
+  }
+
+  DownloadCaseAttachmentUseCase: DownloadCaseAttachmentUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    minioStorageService: MinioStorageService
+    execute(caseId: string, attachmentId: string): Promise<{
+    stream: Readable;
+    fileName: string;
+    contentType: string;
+    size: number;
+  }>
+  }
+
+  GetCaseAttachmentsUseCase: GetCaseAttachmentsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    attachmentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(caseId: string): any
+  }
+
+  GetCaseCommentsUseCase: GetCaseCommentsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    commentRepository: Repository
+    caseCollaborationAccessService: CaseCollaborationAccessService
+    execute(caseId: string): any
+  }
+
+  GetCaseListUseCase: GetCaseListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: CaseRepositoryPort (@Inject('CASE_REPOSITORY'))
+    execute(): any
+  }
+
+  GetCaseViewListUseCase: GetCaseViewListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    findingRepository: Repository
+    investigationRepository: Repository
+    execute(caseId: string): CaseViewListItem
+  }
+
+  GetMyCaseListUseCase: GetMyCaseListUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    findingRepository: Repository
+    execute(): MyCaseListItem\[\]
+  }
+
+  GetMyCaseStatsUseCase: GetMyCaseStatsUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    findingRepository: Repository
+    incidentRepository: Repository
+    execute(): MyCaseStatsResult
+  }
+
+  RejectCaseUseCase: RejectCaseUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    incidentRepository: Repository
+    actionPlanRepository: Repository
+    execute(caseId: string, payload: RejectCasePayload): any
+  }
+
+  ReopenCaseUseCase: ReopenCaseUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    caseRepository: Repository
+    execute(caseId: string): any
+  }
+
+  UpdateCaseInvestigationUseCase: UpdateCaseInvestigationUseCase {
+    shape: class
+    style.fill: "#e3f2fd"
+    # Dependencies
+    request: Request (@Inject('REQUEST'))
+    caseRepository: Repository
+    investigationRepository: Repository
+    incidentRepository: Repository
+    execute(caseId: string, payload: UpdateCaseInvestigationPayload): CaseOrmEntity
+  }
+
+  InMemoryCaseRepository: InMemoryCaseRepository {
+    shape: class
+    style.fill: "#e3f2fd"
+    save(caseAggregate: CaseAggregate): void
+    findAll(): CaseAggregate\[\]
+  }
+
+}
+
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.GetMyCaseListUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.GetMyCaseStatsUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.GetCaseViewListUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.AddCaseCommentUseCase: depends on
+CaseManagementModule.CaseV1Controller -> CaseManagementModule.AddCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.GetCaseListUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.RejectCaseUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.ReopenCaseUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.AddCaseCommentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.GetCaseCommentsUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.AddCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.GetCaseAttachmentsUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.DownloadCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.DeleteCaseAttachmentUseCase: depends on
+CaseManagementModule.CaseController -> CaseManagementModule.UpdateCaseInvestigationUseCase: depends on
+CaseManagementModule.AddCaseAttachmentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.AddCaseAttachmentUseCase -> CaseManagementModule.MinioStorageService: depends on
+CaseManagementModule.AddCaseCommentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.DeleteCaseAttachmentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.DeleteCaseAttachmentUseCase -> CaseManagementModule.MinioStorageService: depends on
+CaseManagementModule.DownloadCaseAttachmentUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.DownloadCaseAttachmentUseCase -> CaseManagementModule.MinioStorageService: depends on
+CaseManagementModule.GetCaseAttachmentsUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
+CaseManagementModule.GetCaseCommentsUseCase -> CaseManagementModule.CaseCollaborationAccessService: depends on
