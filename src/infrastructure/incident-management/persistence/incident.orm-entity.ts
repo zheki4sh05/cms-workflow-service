@@ -21,6 +21,9 @@ export class IncidentOrmEntity {
   riskObjectId!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  departmentId!: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
   documentId?: string | null;
 
   @Column({ type: 'varchar', length: 20 })
