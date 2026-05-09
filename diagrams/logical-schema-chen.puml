@@ -1,0 +1,185 @@
+@startchen LogicalSchemaChen
+left to right direction
+title Логическая схема базы данных (нотация Чена)
+
+' Внешние ключи, отражённые ромбами связей, в списках атрибутов не дублируются.
+' Кардинальности на рёбрах — как в документации PlantUML @startchen.
+
+entity "Инцидент\n(incident)" as INCIDENT {
+  id : UUID <<key>>
+  company_id : VARCHAR
+  integration_id : INTEGER
+  risk_object_id : VARCHAR
+  department_id : VARCHAR
+  document_id : VARCHAR
+  status : VARCHAR
+  resolved_date : TIMESTAMP
+}
+
+entity "Находка\n(findings)" as FINDING {
+  id : UUID <<key>>
+  priority : VARCHAR
+  assigned_user_id : VARCHAR
+  rules_id : UUID
+  detected_at : TIMESTAMPTZ
+  deadline : TIMESTAMPTZ
+  details : JSONB
+}
+
+entity "Кейс\n(cases)" as CMS_CASE {
+  id : UUID <<key>>
+  assigned_user_id : VARCHAR
+  status : VARCHAR
+}
+
+entity "Расследование\n(investigations)" as INVESTIGATION {
+  id : UUID <<key>>
+  investigation_notes : TEXT
+  root_cause : TEXT
+  requires_corrective_action : BOOLEAN
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "Комментарий к кейсу\n(case_comments)" as CASE_COMMENT {
+  id : UUID <<key>>
+  user_id : VARCHAR
+  comment : TEXT
+  time : TIMESTAMPTZ
+}
+
+entity "Вложение к кейсу\n(case_attachments)" as CASE_ATTACHMENT {
+  id : UUID <<key>>
+  user_id : VARCHAR
+  file_id : VARCHAR
+  name : VARCHAR
+  size : INTEGER
+  time : TIMESTAMPTZ
+}
+
+entity "План действий\n(action_plans)" as ACTION_PLAN {
+  id : UUID <<key>>
+  title : VARCHAR
+  description : TEXT
+  comment : TEXT
+  show_tasks : BOOLEAN
+}
+
+entity "Задача плана\n(action_plan_tasks)" as ACTION_PLAN_TASK {
+  id : UUID <<key>>
+  title : VARCHAR
+  description : TEXT
+  priority : VARCHAR
+  due_date : TIMESTAMPTZ
+  status : VARCHAR
+  evidence_description_inprogress : TEXT
+  evidence_description_done : TEXT
+  completed_at : TIMESTAMPTZ
+}
+
+entity "Доказательство по задаче\n(action_plan_task_evidences)" as TASK_EVIDENCE {
+  id : UUID <<key>>
+  user_id : VARCHAR
+  file_id : UUID
+  name : VARCHAR
+  time : TIMESTAMPTZ
+}
+
+entity "Верификация плана\n(verifications)" as VERIFICATION {
+  id : UUID <<key>>
+  verified : BOOLEAN
+  assigned_user_for_verification : VARCHAR
+  assigned_employee_for_verification : VARCHAR
+  comments : TEXT
+}
+
+entity "Исходящее сообщение\n(outbox_messages)" as OUTBOX {
+  id : UUID <<key>>
+  topic : VARCHAR
+  payload : JSONB
+  created_at : TIMESTAMPTZ
+  status : VARCHAR
+  processed_at : TIMESTAMPTZ
+  error_message : TEXT
+}
+
+relationship "содержит находки" as R_INC_FIND {
+}
+
+relationship "порождает кейсы" as R_INC_CASE {
+}
+
+relationship "раскрывается в кейсах" as R_FIND_CASE {
+}
+
+relationship "расследуется" as R_CASE_INV {
+}
+
+relationship "комментируется" as R_CASE_COMM {
+}
+
+relationship "имеет вложения" as R_CASE_ATT {
+}
+
+relationship "имеет план" as R_CASE_PLAN {
+}
+
+relationship "относится к инциденту" as R_INC_PLAN {
+}
+
+relationship "состоит из задач" as R_PLAN_TASK {
+}
+
+relationship "верифицируется" as R_PLAN_VER {
+}
+
+relationship "подкрепляется доказательствами" as R_TASK_EVID {
+}
+
+' Один инцидент — много находок; у находки ровно один инцидент
+R_INC_FIND -N- INCIDENT
+R_INC_FIND -1- FINDING
+
+' Один инцидент — много кейсов; у кейса ровно один инцидент
+R_INC_CASE -N- INCIDENT
+R_INC_CASE -1- CMS_CASE
+
+' Одна находка — много кейсов (исполнители); у кейса ровно одна находка
+R_FIND_CASE -N- FINDING
+R_FIND_CASE -1- CMS_CASE
+
+' У кейса не более одного расследования; расследование всегда одного кейса
+R_CASE_INV -(0,1)- CMS_CASE
+R_CASE_INV -1- INVESTIGATION
+
+' Один кейс — много комментариев; комментарий относится к одному кейсу
+R_CASE_COMM -N- CMS_CASE
+R_CASE_COMM -1- CASE_COMMENT
+
+' Один кейс — много вложений; вложение к одному кейсу
+R_CASE_ATT -N- CMS_CASE
+R_CASE_ATT -1- CASE_ATTACHMENT
+
+' У кейса не более одного плана; план принадлежит ровно одному кейсу
+R_CASE_PLAN -(0,1)- CMS_CASE
+R_CASE_PLAN -1- ACTION_PLAN
+
+' Один инцидент — много планов; план дублирует привязку к инциденту
+R_INC_PLAN -N- INCIDENT
+R_INC_PLAN -1- ACTION_PLAN
+
+' Один план — много задач; задача одного плана
+R_PLAN_TASK -N- ACTION_PLAN
+R_PLAN_TASK -1- ACTION_PLAN_TASK
+
+' У плана не более одной верификации; верификация одного плана
+R_PLAN_VER -(0,1)- ACTION_PLAN
+R_PLAN_VER -1- VERIFICATION
+
+' Одна задача — много файлов-доказательств; запись доказательства одной задачи
+R_TASK_EVID -N- ACTION_PLAN_TASK
+R_TASK_EVID -1- TASK_EVIDENCE
+
+' Outbox: таблица outbox_messages без внешних ключей на домен (Transactional Outbox).
+
+@endchen
