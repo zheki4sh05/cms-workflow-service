@@ -55,7 +55,7 @@
 
 - `persistence`-адаптеры (TypeORM ORM-entity + in-memory/postgres репозитории) для `incident`, `case`, `action-plan`, `investigation`, `outbox`;
 - `database/migrations` — схема БД и эволюция структуры PostgreSQL;
-- `incident-management/messaging/kafka-incident-topic.consumer.ts` — прием инцидентов из Kafka (`incident_topic`);
+- `incident-management/messaging/kafka-incident-topic.consumer.ts` — прием инцидентов из Kafka (топик из `KAFKA_INCIDENT_TOPIC`);
 - `storage/minio-storage.service.ts` — работа с MinIO для вложений и evidences;
 - `outbox`-адаптеры (`PostgresOutboxRepository`, `InMemoryOutboxRepository`) для надежной доставки событий.
 
@@ -97,6 +97,33 @@ DDD в сервисе выражен через:
 
 - [Architecture blueprint](./docs/architecture.md)
 
+## Взаимодействие с другими сервисами
+
+Ниже — как `cms-workflow-service` связан с остальной платформой и инфраструктурой по текущей реализации в коде.
+
+### Входящие интерфейсы
+
+- **HTTP REST.** Сервис поднимает стандартное NestJS HTTP-приложение. Его используют клиенты CMS (frontend) и вышестоящие шлюзы. OpenAPI доступен по пути `api/docs`; порт задаётся переменной `PORT`.
+- **Kafka (consumer only).** Параллельно подключается транспорт NestJS к брокерам Kafka и обрабатывает сообщения топика из `KAFKA_INCIDENT_TOPIC` (см. раздел ниже «Kafka: публикация сервисом и формат данных»). Идентификатор consumer group для Kafka задан в коде приложения значением `cms-workflow-service-consumer-group` (`src/web/main.ts`).
+
+### Исходящие вызовы к другим микросервисам (HTTP)
+
+Все ниже перечисленные обращения выполняются из use cases / сервисов ядра через `fetch`; часть запросов проксирует заголовок `Authorization` с входящего REST-запроса пользователя.
+
+| Назначение | Переменная окружения | Типичное использование в сервисе |
+|-------------|---------------------|----------------------------------|
+| **Auth** | `CMS_AUTH_SERVICE_URL` | `GET /api/users/me` — текущий пользователь и контекст компании; `GET /api/internal/users/:userId` — обогащение ответов (ФИО, роли и т.п.). Используется в проверках доступа к кейсам, задачам плана действий, при работе со списками и отчётами по инцидентам. |
+| **Monitoring** | `CMS_MONITORING_SERVICE_URL` | `GET /api/internal/risk-objects/:riskObjectId` с заголовком `CompanyId` — данные объектов риска (название, `departmentId` и др.) для отображения, отчётов и создания записи инцидента после обработки outbox (`IncidentResolverService`). |
+| **Risk** | `CMS_RISK_SERVICE_URL` | Если не задана, используется `http://localhost:9094`. `GET /api/internal/rules/:ruleId` — метаданные правил; `GET /api/internal/risk-categories` — категории рисков для агрегированной статистики/отображения. |
+| **Company Info** | `CMS_COMPANY_INFO_SERVICE_URL` | Если не задана, используется `http://localhost:9092`. `GET /employee/department-manager-subordinates` и `GET /employee/department-manager` (query: `userId`, `employeeId`, `companyId`) с заголовком `Authorization` — оргструктура для сценариев супервайзера, списков инцидентов и отправки плана действий. |
+
+Отдельно: **во внешние топики Kafka сервис сейчас не публикует** (только потребляет входящие события и пишет внутреннюю таблицу outbox).
+
+### Инфраструктурные зависимости
+
+- **PostgreSQL** — основное хранилище доменных сущностей и `outbox_messages` (TypeORM).
+- **MinIO (S3)** — объектное хранилище для вложений и evidence задач (`MINIO_*`).
+
 ## Statuses
 
 ### Incident statuses
@@ -127,18 +154,84 @@ When incident transitions to `RESOLVED`, the `incident.resolved_date` column is 
 - `IN_PROGRESS` - task is in progress.
 - `DONE` - task is completed.
 
-## Kafka incident intake and outbox
+## Kafka: публикация сервисом и формат данных
 
-- Consumer subscribes to Kafka topic `incident_topic` via Nest microservice transport.
-- Incoming messages are normalized and saved into outbox with status `pending`.
-- Scheduler (`@nestjs/schedule`) polls pending outbox messages for processing of `incident_topic.received`.
-- Polling interval is configurable via `OUTBOX_RESOLVER_INTERVAL_MINUTES`.
+### Топики Kafka, в которые пишет сервис
+
+На текущий момент сервис **не публикует сообщения в Kafka**.
+
+- Реализован только Kafka consumer (подписка на `KAFKA_INCIDENT_TOPIC`).
+- В коде отсутствуют Kafka producer (`ClientKafka`, `emit`, `send`).
+- После получения сообщения из Kafka сервис сохраняет его во внутренний outbox (таблица `outbox_messages`) для последующей обработки внутри сервиса.
+
+### Что именно сервис сохраняет после Kafka-сообщения (внутренний outbox)
+
+Сервис создает outbox-сообщение с topic `incident_topic.received` и payload в JSON-формате:
+
+```json
+{
+  "companyId": "string",
+  "integrationId": 123,
+  "riskObjectId": "string",
+  "documentId": "string (optional)",
+  "rules": [
+    {
+      "rulesId": "string",
+      "rulePriority": "string",
+      "detectedAt": "ISO date string (optional)",
+      "responsible_user_id": "string | null",
+      "result": "string",
+      "found": true,
+      "details": {}
+    }
+  ],
+  "receivedAt": "ISO date string"
+}
+```
+
+### Формат входящего Kafka-сообщения (которое сервис читает)
+
+Входящее сообщение из `KAFKA_INCIDENT_TOPIC` ожидается в JSON-формате:
+
+```json
+{
+  "companyId": "string",
+  "integrationId": 123,
+  "riskObjectId": "string",
+  "documentId": "string (optional)",
+  "rules": [
+    {
+      "rulesId": "string",
+      "rulePriority": "string",
+      "detectedAt": "ISO date string (optional)",
+      "responsible_user_id": "string | null",
+      "result": "string",
+      "found": true,
+      "details": {}
+    }
+  ]
+}
+```
+
+Обязательная валидация перед сохранением в outbox:
+
+- `companyId` — обязателен;
+- `riskObjectId` — обязателен;
+- `rules` — обязателен и должен быть массивом.
+
+Если в будущем будет добавлен Kafka producer, этот раздел нужно дополнить таблицей: `topic` / `назначение` / `schema`.
 
 Environment variables:
 
-- `KAFKA_BROKERS` (default: `localhost:9092`)
-- `KAFKA_CLIENT_ID` (default: `cms-workflow-service`)
-- `KAFKA_GROUP_ID` (default: `cms-workflow-service-consumer-group`)
+- `PORT` — порт HTTP-сервера (обязательный для запуска, см. `src/web/main.ts`)
+- `KAFKA_BROKERS` — список брокеров через запятую (обязательный)
+- `KAFKA_CLIENT_ID` — идентификатор Kafka-клиента (обязательный)
+- `KAFKA_INCIDENT_TOPIC` — имя Kafka-топика для приёма инцидентов (обязательный)
+- `KAFKA_GROUP_ID` — в текущем коде **не читается**; consumer group зафиксирован в `main.ts`: `cms-workflow-service-consumer-group`
+- `CMS_AUTH_SERVICE_URL` — базовый URL сервиса аутентификации/CMS Auth
+- `CMS_MONITORING_SERVICE_URL` — базовый URL monitoring-сервиса (risk objects API)
+- `CMS_RISK_SERVICE_URL` — базовый URL risk-сервиса (необязательный; дефолт в коде: `http://localhost:9094`)
+- `CMS_COMPANY_INFO_SERVICE_URL` — базовый URL company-info (необязательный; дефолт в коде: `http://localhost:9092`)
 - `DB_HOST` (default: `localhost`)
 - `DB_PORT` (default: `5432`)
 - `DB_USER` (default: `postgres`)

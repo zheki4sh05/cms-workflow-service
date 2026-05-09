@@ -1,0 +1,124 @@
+@startuml cms-workflow-clean-architecture
+!theme plain
+title cms-workflow-service — слои Clean Architecture (по README.md)
+
+skinparam rectangle {
+    roundCorner 8
+    BackgroundColor White
+}
+skinparam packageStyle rectangle
+
+' ─── Слой web (доставка и композиция NestJS) ─────────────────────────────────
+package "web\n(REST API, DTO, NestJS-модули)" as WEB #E3F2FD {
+    rectangle "Контроллеры" as CTRL {
+        rectangle "IncidentController" as IncCtrl
+        rectangle "CaseController / CaseV1Controller" as CaseCtrl
+        rectangle "ActionPlanController\nTaskController\nSupervisorVerificationController" as ApCtrl
+        rectangle "InvestigationController" as InvCtrl
+    }
+    rectangle "Транспорт" as TRANS {
+        rectangle "DTO + валидация / маппинг\n(отделение HTTP-моделей от домена)" as DTO
+    }
+    rectangle "Композиция" as COMP {
+        rectangle "AppModule и feature-модули:\nподключение use cases\nи провайдеров адаптеров (DI)" as MODULES
+    }
+}
+
+' ─── Слой core (бизнес-ядро, без фреймворков БД/транспорта) ──────────────────
+package "core\n(бизнес-логика, порты, сценарии)" as CORE #FFFDE7 {
+    package "Предметные контексты (bounded contexts)" as BC {
+        rectangle "incident-management" as BCM1
+        rectangle "case-management" as BCM2
+        rectangle "action-plan-management" as BCM3
+        rectangle "investigation-management" as BCM4
+        rectangle "outbox (доменная модель сообщения)" as BCM5
+    }
+
+    package "domain" as DOM {
+        rectangle "Сущности и агрегаты:\nIncident, Case (aggregate),\nActionPlan, Investigation,\nOutboxMessage" as ENT
+    }
+
+    package "use-cases" as UC {
+        rectangle "Прикладные сценарии\n(оркестрация домена\nчерез порты)" as UCS
+    }
+
+    package "ports\n(контракты репозиториев)" as PORTS <<Rectangle>> {
+        interface "IncidentRepository" as PInc
+        interface "CaseRepository" as PCase
+        interface "ActionPlanRepository" as PAp
+        interface "InvestigationRepository" as PInv
+        interface "OutboxRepository" as POut
+    }
+
+    package "services\n(доменные / прикладные правила)" as SVC {
+        rectangle "IncidentResolverService" as S1
+        rectangle "CaseCollaborationAccessService" as S2
+        rectangle "ActionPlanTaskAccessService" as S3
+        rectangle "OutboxProcessorService" as S4
+    }
+}
+
+' ─── Слой infrastructure (адаптеры к технологиям) ────────────────────────────
+package "infrastructure\n(реализация портов и интеграции)" as INFRA #ECEFF1 {
+    rectangle "persistence" as PERS {
+        rectangle "TypeORM ORM-entity +\nPostgres / in-memory\nрепозитории для\nincident, case,\naction-plan,\ninvestigation" as REPO
+    }
+    rectangle "database" as DBPKG {
+        rectangle "Миграции PostgreSQL" as MIG
+    }
+    rectangle "messaging" as MSG {
+        rectangle "kafka-incident-topic.consumer\n(топик KAFKA_INCIDENT_TOPIC)" as KAFKA_C
+    }
+    rectangle "storage" as STO {
+        rectangle "MinIO / S3\n(minio-storage.service)" as MINIO
+    }
+    rectangle "outbox (адаптеры)" as OUTA {
+        rectangle "PostgresOutboxRepository\nInMemoryOutboxRepository" as OUTR
+    }
+}
+
+' ─── Внешние системы ───────────────────────────────────────────────────────────
+cloud "Клиенты CMS\n(frontend, шлюзы)" as CLIENT #F5F5F5
+queue "Kafka\n(входящий топик)" as KAFKA #F5F5F5
+database "PostgreSQL" as PG #F5F5F5
+storage "MinIO" as MINIO_EXT #F5F5F5
+cloud "Внешние HTTP-сервисы\n(Auth, Monitoring, Risk,\nCompany Info — fetch из ядра)" as EXT_HTTP #F5F5F5
+
+' ─── Поток вызовов и зависимостей (правило зависимостей) ──────────────────────
+CLIENT --> WEB : HTTPS / REST\n(Swagger: api/docs)
+CTRL --> DTO
+CTRL --> UCS : вызов сценариев
+MODULES ..> UCS
+MODULES ..> REPO : регистрация\nконкретных адаптеров
+
+INFRA ..> CORE : зависимость только\nот **портов** и типов ядра
+REPO ..|> PInc
+REPO ..|> PCase
+REPO ..|> PAp
+REPO ..|> PInv
+OUTR ..|> POut
+
+UCS --> PORTS : использует интерфейсы
+UCS --> ENT
+UCS --> SVC
+SVC --> PORTS
+
+KAFKA --> KAFKA_C : сообщения инцидентов
+KAFKA_C ..> BCM1 : сохранение\nво внутренний outbox\n(по описанию README)
+
+PG --> REPO
+PG --> OUTR
+REPO --> PG
+MINIO_EXT --> MINIO
+
+UCS .. EXT_HTTP : исходящие HTTP,\nпрокси Authorization\n(описано в README)
+
+note bottom of CORE
+  **Правило зависимостей** (README)
+  - **domain** и **use-cases** в **core** не зависят от TypeORM, Kafka, MinIO
+  - **infrastructure** зависит от **core** и реализует порты
+  - **web** зависит от **core** (use cases) и подключает адаптеры через DI
+  - **Outbox** между транзакцией и асинхронной обработкой
+end note
+
+@enduml
