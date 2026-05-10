@@ -13,6 +13,9 @@ import { getOptionalEnvOrDefault } from '../../../web/app/env';
 import { IncidentOrmEntity } from '../../../infrastructure/incident-management/persistence/incident.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
 import { FindingOrmEntity } from '../../../infrastructure/incident-management/persistence/finding.orm-entity';
+import { ActionPlanOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan.orm-entity';
+import { ActionPlanTaskOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan-task.orm-entity';
+import { VerificationOrmEntity } from '../../../infrastructure/action-plan-management/persistence/verification.orm-entity';
 
 type Severity = 'low' | 'medium' | 'high';
 
@@ -68,6 +71,9 @@ interface ManagerIncidentStatsResult {
   };
   byCategory: IncidentCategoryStats[];
   avgResolutionTime: number;
+  criticalIncidents: number;
+  overdueActionPlans: number;
+  pendingVerifications: number;
 }
 
 @Injectable({ scope: Scope.REQUEST })
@@ -80,43 +86,74 @@ export class GetMyIncidentStatsUseCase {
     private readonly caseRepository: Repository<CaseOrmEntity>,
     @InjectRepository(FindingOrmEntity)
     private readonly findingRepository: Repository<FindingOrmEntity>,
+    @InjectRepository(ActionPlanOrmEntity)
+    private readonly actionPlanRepository: Repository<ActionPlanOrmEntity>,
+    @InjectRepository(ActionPlanTaskOrmEntity)
+    private readonly actionPlanTaskRepository: Repository<ActionPlanTaskOrmEntity>,
+    @InjectRepository(VerificationOrmEntity)
+    private readonly verificationRepository: Repository<VerificationOrmEntity>,
   ) {}
 
   async execute(): Promise<ManagerIncidentStatsResult> {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
-    const assignedUserIds = await this.resolveAvailableAssigneeIds(user, roles);
-    if (assignedUserIds.length === 0) {
-      return this.buildEmptyStats();
-    }
+    const companyWide = roles.includes('EXECUTIVE') || roles.includes('EXECUTOR');
+    const isSupervisor = roles.includes('SUPERVISOR');
+    const isManager = roles.includes('MANAGER');
 
-    const [cases, assignedFindings] = await Promise.all([
-      this.caseRepository.find({
-        where: assignedUserIds.map((assignedUserId) => ({ assignedUserId })),
-      }),
-      this.findingRepository.find({
-        where: assignedUserIds.map((assignedUserId) => ({ assignedUserId })),
-      }),
-    ]);
+    let incidents: IncidentOrmEntity[];
+    let cases: CaseOrmEntity[];
+    /** Findings, назначенные на выбранных ответственных (для среднего времени у MANAGER) */
+    let assignedFindings: FindingOrmEntity[];
 
-    const incidentIds = [
-      ...new Set([
-        ...cases.map((item) => item.incidentId),
-        ...assignedFindings.map((item) => item.incidentId),
-      ]),
-    ];
-    if (incidentIds.length === 0) {
-      return this.buildEmptyStats();
-    }
+    if (companyWide) {
+      incidents = await this.incidentRepository.find({
+        where: { companyId: user.companyId },
+      });
+      if (incidents.length === 0) {
+        return this.buildEmptyStats();
+      }
+      const incidentIds = incidents.map((item) => item.id);
+      cases = await this.caseRepository.find({
+        where: { incidentId: In(incidentIds) },
+      });
+      assignedFindings = [];
+    } else {
+      const assignedUserIds = await this.resolveAvailableAssigneeIds(user, roles);
+      if (assignedUserIds.length === 0) {
+        return this.buildEmptyStats();
+      }
 
-    const incidents = await this.incidentRepository.find({
-      where: {
-        id: In(incidentIds),
-        companyId: user.companyId,
-      },
-    });
-    if (incidents.length === 0) {
-      return this.buildEmptyStats();
+      const [casesFromAssignees, findingsFromAssignees] = await Promise.all([
+        this.caseRepository.find({
+          where: assignedUserIds.map((assignedUserId) => ({ assignedUserId })),
+        }),
+        this.findingRepository.find({
+          where: assignedUserIds.map((assignedUserId) => ({ assignedUserId })),
+        }),
+      ]);
+      cases = casesFromAssignees;
+      assignedFindings = findingsFromAssignees;
+
+      const incidentIds = [
+        ...new Set([
+          ...cases.map((item) => item.incidentId),
+          ...assignedFindings.map((item) => item.incidentId),
+        ]),
+      ];
+      if (incidentIds.length === 0) {
+        return this.buildEmptyStats();
+      }
+
+      incidents = await this.incidentRepository.find({
+        where: {
+          id: In(incidentIds),
+          companyId: user.companyId,
+        },
+      });
+      if (incidents.length === 0) {
+        return this.buildEmptyStats();
+      }
     }
 
     const fullIncidentIds = incidents.map((item) => item.id);
@@ -132,6 +169,11 @@ export class GetMyIncidentStatsUseCase {
         },
       }),
     ]);
+    const actionPlans = await this.actionPlanRepository.find({
+      where: {
+        incidentId: In(fullIncidentIds),
+      },
+    });
     const findingsByIncidentId = this.groupBy(findings, (item) => item.incidentId);
 
     const ruleIds = Array.from(
@@ -211,15 +253,28 @@ export class GetMyIncidentStatsUseCase {
       }
     }
 
+    const criticalIncidents = bySeverity.high;
+
+    const managerFindingIncidentIds = new Set(
+      assignedFindings.map((finding) => finding.incidentId),
+    );
+    const avgResolutionScopeIncidentIds =
+      companyWide || isSupervisor
+        ? new Set(fullIncidentIds)
+        : isManager
+          ? managerFindingIncidentIds
+          : new Set<string>();
     const avgResolutionTime = this.calculateAverageResolutionTimeInHours(
       incidents.filter(
         (incident) =>
           incident.status === 'RESOLVED' &&
           incident.resolvedDate !== null &&
-          workingIncidentIds.has(incident.id),
+          avgResolutionScopeIncidentIds.has(incident.id),
       ),
       findingsByIncidentId,
     );
+    const { overdueActionPlans, pendingVerifications } =
+      await this.calculateActionPlanStats(actionPlans);
 
     return {
       totalIncidents: incidents.length,
@@ -234,6 +289,9 @@ export class GetMyIncidentStatsUseCase {
         a.categoryName.localeCompare(b.categoryName),
       ),
       avgResolutionTime,
+      criticalIncidents,
+      overdueActionPlans,
+      pendingVerifications,
     };
   }
 
@@ -253,6 +311,58 @@ export class GetMyIncidentStatsUseCase {
       },
       byCategory: [],
       avgResolutionTime: 0,
+      criticalIncidents: 0,
+      overdueActionPlans: 0,
+      pendingVerifications: 0,
+    };
+  }
+
+  private async calculateActionPlanStats(
+    actionPlans: ActionPlanOrmEntity[],
+  ): Promise<{
+    overdueActionPlans: number;
+    pendingVerifications: number;
+  }> {
+    if (actionPlans.length === 0) {
+      return { overdueActionPlans: 0, pendingVerifications: 0 };
+    }
+
+    const actionPlanIds = actionPlans.map((plan) => plan.id);
+    const [tasks, verifications] = await Promise.all([
+      this.actionPlanTaskRepository.find({
+        where: {
+          actionPlanId: In(actionPlanIds),
+        },
+      }),
+      this.verificationRepository.find({
+        where: {
+          actionPlanId: In(actionPlanIds),
+        },
+      }),
+    ]);
+
+    const now = Date.now();
+    const overduePlanIds = new Set(
+      tasks
+        .filter(
+          (task) =>
+            task.status !== 'DONE' &&
+            task.dueDate instanceof Date &&
+            task.dueDate.getTime() < now,
+        )
+        .map((task) => task.actionPlanId),
+    );
+    const verificationByActionPlanId = new Map(
+      verifications.map((verification) => [verification.actionPlanId, verification]),
+    );
+    const pendingVerifications = actionPlans.filter((plan) => {
+      const verification = verificationByActionPlanId.get(plan.id);
+      return !verification || verification.verified === false;
+    }).length;
+
+    return {
+      overdueActionPlans: overduePlanIds.size,
+      pendingVerifications,
     };
   }
 

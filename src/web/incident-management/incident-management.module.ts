@@ -8,6 +8,9 @@ import { AssignIncidentToMeUseCase } from '../../core/incident-management/use-ca
 import { GetIncidentViewUseCase } from '../../core/incident-management/use-cases/get-incident-view.use-case';
 import { GetIncidentReportListUseCase } from '../../core/incident-management/use-cases/get-incident-report-list.use-case';
 import { GetMyIncidentStatsUseCase } from '../../core/incident-management/use-cases/get-my-incident-stats.use-case';
+import { GetManagerKpiListUseCase } from '../../core/incident-management/use-cases/get-manager-kpi-list.use-case';
+import { GetProblemAreasUseCase } from '../../core/incident-management/use-cases/get-problem-areas.use-case';
+import { GetOperationsOverviewUseCase } from '../../core/incident-management/use-cases/get-operations-overview.use-case';
 import { INCIDENT_REPOSITORY } from '../../core/incident-management/ports/incident.repository.port';
 import { InMemoryIncidentRepository } from '../../infrastructure/incident-management/persistence/in-memory-incident.repository';
 import { IncidentController } from './incident.controller';
@@ -43,9 +46,12 @@ import { ActionPlanTaskEvidenceOrmEntity } from '../../infrastructure/action-pla
     GetIncidentListUseCase,
     GetMyIncidentListUseCase,
     GetIncidentReportUseCase,
+    GetProblemAreasUseCase,
+    GetOperationsOverviewUseCase,
     GetIncidentViewUseCase,
     GetIncidentReportListUseCase,
     GetMyIncidentStatsUseCase,
+    GetManagerKpiListUseCase,
     AssignIncidentToMeUseCase,
     IngestIncidentTopicUseCase,
     InMemoryIncidentRepository,

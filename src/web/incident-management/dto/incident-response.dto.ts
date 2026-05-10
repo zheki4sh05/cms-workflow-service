@@ -125,6 +125,26 @@ export class IncidentManagerStatsResponseDto {
     example: 36,
   })
   avgResolutionTime!: number;
+
+  @ApiProperty({
+    description: 'Количество инцидентов с наивысшей важностью',
+    example: 4,
+  })
+  criticalIncidents!: number;
+
+  @ApiProperty({
+    description:
+      'Количество планов действий, где есть хотя бы одна просроченная задача',
+    example: 2,
+  })
+  overdueActionPlans!: number;
+
+  @ApiProperty({
+    description:
+      'Количество планов действий, которые еще не проверены руководителем',
+    example: 3,
+  })
+  pendingVerifications!: number;
 }
 
 export class InvestigationReportDto {
@@ -358,6 +378,120 @@ export class IncidentReportResponseDto {
   findings!: FindingReportDto[];
 }
 
+export class ProblemAreasGroupDto {
+  @ApiProperty({ description: 'Идентификатор документа интеграции' })
+  documentId!: string;
+
+  @ApiProperty({
+    description:
+      'Сколько инцидентов у этого документа попало в месяц (больше одного — проблемная зона)',
+  })
+  incidentCount!: number;
+
+  @ApiProperty({
+    type: IncidentReportResponseDto,
+    isArray: true,
+    description: 'Полный отчёт по каждому инциденту (как GET .../report)',
+  })
+  incidents!: IncidentReportResponseDto[];
+}
+
+export class ProblemAreasResponseDto {
+  @ApiProperty({
+    description: 'Календарный месяц в формате YYYY-MM (UTC)',
+    example: '2026-05',
+  })
+  month!: string;
+
+  @ApiProperty({ type: ProblemAreasGroupDto, isArray: true })
+  groups!: ProblemAreasGroupDto[];
+}
+
+export class OperationsOverviewIncidentsDto {
+  @ApiProperty() total!: number;
+  @ApiProperty() open!: number;
+  @ApiProperty() partlyProgress!: number;
+  @ApiProperty() inProgress!: number;
+  @ApiProperty() resolved!: number;
+  @ApiProperty({ description: 'Инциденты с непустым documentId' })
+  linkedToDocument!: number;
+  @ApiProperty({ description: 'Без привязки к документу' })
+  withoutDocument!: number;
+
+  @ApiProperty({
+    description:
+      'Не в статусе RESOLVED и минимальная дата обнаружения (findings) старше 14 суток',
+  })
+  staleUnresolved!: number;
+}
+
+export class OperationsOverviewFindingsDto {
+  @ApiProperty() total!: number;
+  @ApiProperty({
+    description: 'Findings без assignedUserId',
+  })
+  unassigned!: number;
+}
+
+export class OperationsOverviewCasesDto {
+  @ApiProperty() total!: number;
+  @ApiProperty() waitingVerification!: number;
+  @ApiProperty() closed!: number;
+  @ApiProperty({
+    description: 'Прочие статусы кейсов (total − closed − waitingVerification)',
+  })
+  other!: number;
+}
+
+export class OperationsOverviewActionPlansDto {
+  @ApiProperty({
+    description:
+      'Число планов действий, у которых есть просроченная незавершённая задача',
+  })
+  withOverdueTasks!: number;
+}
+
+export class RiskHotspotItemDto {
+  @ApiProperty() riskObjectId!: string;
+  @ApiProperty({ required: false, nullable: true })
+  riskObjectName!: string | null;
+  @ApiProperty() incidentCount!: number;
+}
+
+export class IncidentsByRiskObjectSeverityDto {
+  @ApiProperty({ description: 'По полю severity объекта риска из CMS_MONITORING' })
+  low!: number;
+
+  @ApiProperty() medium!: number;
+  @ApiProperty() high!: number;
+
+  @ApiProperty({ description: 'Нет данных или не low/medium/high' })
+  unknown!: number;
+}
+
+export class OperationsOverviewResponseDto {
+  @ApiProperty({ enum: ['COMPANY', 'DEPARTMENT'] })
+  scope!: 'COMPANY' | 'DEPARTMENT';
+
+  @ApiProperty({ type: OperationsOverviewIncidentsDto })
+  incidents!: OperationsOverviewIncidentsDto;
+
+  @ApiProperty({ type: OperationsOverviewFindingsDto })
+  findings!: OperationsOverviewFindingsDto;
+
+  @ApiProperty({ type: OperationsOverviewCasesDto })
+  cases!: OperationsOverviewCasesDto;
+
+  @ApiProperty({ type: OperationsOverviewActionPlansDto })
+  actionPlans!: OperationsOverviewActionPlansDto;
+
+  @ApiProperty({ type: RiskHotspotItemDto, isArray: true })
+  riskHotspots!: RiskHotspotItemDto[];
+
+  @ApiProperty({ type: IncidentsByRiskObjectSeverityDto })
+  incidentsByRiskObjectSeverity!: IncidentsByRiskObjectSeverityDto;
+}
+
 export class FindingViewResponseDto {
   @ApiProperty()
   id!: string;
@@ -425,6 +559,50 @@ export class IncidentReportListItemDto {
 
   @ApiProperty({ type: FindingReportDto, isArray: true })
   findings!: FindingReportDto[];
+}
+
+export class ManagerKpiItemDto {
+  @ApiProperty({ description: 'Идентификатор пользователя (менеджера)' })
+  managerId!: string;
+
+  @ApiProperty({
+    description: 'Отображаемое имя менеджера',
+    example: 'Иван Иванов',
+  })
+  managerName!: string;
+
+  @ApiProperty({
+    description:
+      'Число инцидентов с назначением на менеджера (cases или findings)',
+  })
+  assignedIncidents!: number;
+
+  @ApiProperty({ description: 'Число решённых инцидентов среди назначенных' })
+  resolvedIncidents!: number;
+
+  @ApiProperty({ description: 'Число активных случаев (case не в статусе CLOSED)' })
+  activeCases!: number;
+
+  @ApiProperty({ description: 'Число завершённых случаев (case в статусе CLOSED)' })
+  completedCases!: number;
+
+  @ApiProperty({
+    description: 'Среднее время решения инцидента в часах (по решённым в области KPI)',
+    example: 28,
+  })
+  avgResolutionTime!: number;
+
+  @ApiProperty({
+    description:
+      'Доля задач плана действий со статусом DONE, завершённых не позже dueDate (процент)',
+    example: 94,
+  })
+  onTimeCompletion!: number;
+}
+
+export class ManagerKpiListResponseDto {
+  @ApiProperty({ type: ManagerKpiItemDto, isArray: true })
+  items!: ManagerKpiItemDto[];
 }
 
 export class IncidentReportListResponseDto {

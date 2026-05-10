@@ -132,17 +132,19 @@ export class GetIncidentReportListUseCase {
     const roles = await this.fetchUserRoles(user.id);
 
     const isExecutive = roles.includes('EXECUTIVE');
+    const isExecutor = roles.includes('EXECUTOR');
     const isSupervisor = roles.includes('SUPERVISOR');
-    if (!isExecutive && !isSupervisor) {
+    const companyWide = isExecutive || isExecutor;
+    if (!companyWide && !isSupervisor) {
       throw new ForbiddenException(
-        'Only SUPERVISOR and EXECUTIVE can access incident reports',
+        'Only SUPERVISOR, EXECUTIVE and EXECUTOR can access incident reports',
       );
     }
 
     const normalizedPage = this.normalizePage(page);
     const normalizedLimit = this.normalizeLimit(limit);
 
-    if (isExecutive) {
+    if (companyWide) {
       return this.buildExecutivePage(
         user.companyId,
         normalizedPage,

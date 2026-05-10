@@ -7,13 +7,19 @@ import { AssignIncidentToMeUseCase } from '../../core/incident-management/use-ca
 import { GetIncidentViewUseCase } from '../../core/incident-management/use-cases/get-incident-view.use-case';
 import { GetIncidentReportListUseCase } from '../../core/incident-management/use-cases/get-incident-report-list.use-case';
 import { GetMyIncidentStatsUseCase } from '../../core/incident-management/use-cases/get-my-incident-stats.use-case';
+import { GetManagerKpiListUseCase } from '../../core/incident-management/use-cases/get-manager-kpi-list.use-case';
+import { GetProblemAreasUseCase } from '../../core/incident-management/use-cases/get-problem-areas.use-case';
+import { GetOperationsOverviewUseCase } from '../../core/incident-management/use-cases/get-operations-overview.use-case';
 import {
   AssignIncidentCaseResponseDto,
   IncidentManagerStatsResponseDto,
   IncidentReportListResponseDto,
   IncidentReportResponseDto,
   IncidentViewResponseDto,
+  ManagerKpiListResponseDto,
   MyIncidentResponseDto,
+  ProblemAreasResponseDto,
+  OperationsOverviewResponseDto,
 } from './dto/incident-response.dto';
 
 @Controller('api/incidents')
@@ -25,6 +31,9 @@ export class IncidentController {
     private readonly getIncidentViewUseCase: GetIncidentViewUseCase,
     private readonly getIncidentReportListUseCase: GetIncidentReportListUseCase,
     private readonly getMyIncidentStatsUseCase: GetMyIncidentStatsUseCase,
+    private readonly getManagerKpiListUseCase: GetManagerKpiListUseCase,
+    private readonly getProblemAreasUseCase: GetProblemAreasUseCase,
+    private readonly getOperationsOverviewUseCase: GetOperationsOverviewUseCase,
   ) {}
 
   @Get('my')
@@ -40,17 +49,37 @@ export class IncidentController {
   @Get('my/stats')
   @ApiOperation({
     summary:
-      'Статистика по инцидентам менеджера (для MANAGER и SUPERVISOR по доступным назначениям).',
+      'Статистика по инцидентам: EXECUTIVE и EXECUTOR — по всей компании; SUPERVISOR — подчинённые отдела (нужен EmployeeId при отсутствии в профиле); MANAGER — свои назначения.',
   })
   @ApiOkResponse({ type: IncidentManagerStatsResponseDto })
   getMyStats(): Promise<IncidentManagerStatsResponseDto> {
     return this.getMyIncidentStatsUseCase.execute();
   }
 
+  @Get('kpi/managers')
+  @ApiOperation({
+    summary:
+      'KPI по сотрудникам (менеджерам) с назначениями: SUPERVISOR — подчинённые отдела руководителя; EXECUTIVE и EXECUTOR — все назначенные по компании. Требуется заголовок EmployeeId для SUPERVISOR, если нет employeeId в профиле.',
+  })
+  @ApiOkResponse({ type: ManagerKpiListResponseDto })
+  getManagerKpi(): Promise<ManagerKpiListResponseDto> {
+    return this.getManagerKpiListUseCase.execute();
+  }
+
+  @Get('overview')
+  @ApiOperation({
+    summary:
+      'Операционная сводка: конвейер инцидентов и кейсов, «залипшие» нерешённые (>14 дней с первого обнаружения), топ объектов риска (мониторинг), серьёзность по объектам риска, просрочки в планах. EXECUTIVE и EXECUTOR — компания; SUPERVISOR — отдел (подчинённые).',
+  })
+  @ApiOkResponse({ type: OperationsOverviewResponseDto })
+  getOperationsOverview(): Promise<OperationsOverviewResponseDto> {
+    return this.getOperationsOverviewUseCase.execute() as Promise<OperationsOverviewResponseDto>;
+  }
+
   @Get('reports')
   @ApiOperation({
     summary:
-      'Постраничный список полных отчетов по инцидентам для ролей SUPERVISOR и EXECUTIVE.',
+      'Постраничный список полных отчетов по инцидентам для ролей SUPERVISOR, EXECUTIVE и EXECUTOR (EXECUTIVE/EXECUTOR — по компании).',
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
@@ -74,6 +103,27 @@ export class IncidentController {
         status,
       },
     ) as Promise<IncidentReportListResponseDto>;
+  }
+
+  @Get('problem-areas')
+  @ApiOperation({
+    summary:
+      'Проблемные зоны: инциденты с одинаковым documentId, у которых за выбранный календарный месяц (UTC) более одного срабатывания. EXECUTIVE и EXECUTOR — компания; SUPERVISOR — как отчёты (подчинённые отдела). Полные отчёты как по GET /:incidentId/report.',
+  })
+  @ApiQuery({
+    name: 'month',
+    required: false,
+    type: String,
+    example: '2026-05',
+    description: 'Год-месяц UTC (YYYY-MM). По умолчанию — текущий месяц UTC.',
+  })
+  @ApiOkResponse({ type: ProblemAreasResponseDto })
+  getProblemAreas(
+    @Query('month') month?: string,
+  ): Promise<ProblemAreasResponseDto> {
+    return this.getProblemAreasUseCase.execute(
+      month,
+    ) as Promise<ProblemAreasResponseDto>;
   }
 
   @Get(':incidentId/report')
