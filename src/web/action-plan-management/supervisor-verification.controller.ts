@@ -16,7 +16,7 @@ export class SupervisorVerificationController {
   @Get('pending')
   @ApiOperation({
     summary:
-      'Планы действий, ожидающие верификации руководителем: EXECUTIVE и EXECUTOR — по компании; SUPERVISOR — где назначен как верификатор. Статус кейса WAITING_VERIFICATION, verified=false.',
+      'Планы действий, ожидающие верификации руководителем: EXECUTIVE — по компании; SUPERVISOR — где назначен как верификатор. Статус кейса WAITING_VERIFICATION, verified=false.',
   })
   @ApiOkResponse({ type: PendingVerificationListResponseDto })
   listPending(): Promise<PendingVerificationListResponseDto> {

@@ -84,16 +84,14 @@ export class GetManagerKpiListUseCase {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
     const isExecutive = roles.includes('EXECUTIVE');
-    const isExecutor = roles.includes('EXECUTOR');
     const isSupervisor = roles.includes('SUPERVISOR');
-    const companyWide = isExecutive || isExecutor;
-    if (!companyWide && !isSupervisor) {
+    if (!isExecutive && !isSupervisor) {
       throw new ForbiddenException(
-        'Only SUPERVISOR, EXECUTIVE and EXECUTOR can access manager KPI',
+        'Only SUPERVISOR and EXECUTIVE can access manager KPI',
       );
     }
 
-    const targetUserIds = companyWide
+    const targetUserIds = isExecutive
       ? await this.resolveCompanyAssigneeIds(user.companyId)
       : await this.resolveDepartmentSubordinateIds(user);
 

@@ -111,19 +111,17 @@ export class GetOperationsOverviewUseCase {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
     const isExecutive = roles.includes('EXECUTIVE');
-    const isExecutor = roles.includes('EXECUTOR');
     const isSupervisor = roles.includes('SUPERVISOR');
-    const companyWide = isExecutive || isExecutor;
-    if (!companyWide && !isSupervisor) {
+    if (!isExecutive && !isSupervisor) {
       throw new ForbiddenException(
-        'Only SUPERVISOR, EXECUTIVE and EXECUTOR can access operations overview',
+        'Only SUPERVISOR and EXECUTIVE can access operations overview',
       );
     }
 
-    const scope: OverviewScope = companyWide ? 'COMPANY' : 'DEPARTMENT';
+    const scope: OverviewScope = isExecutive ? 'COMPANY' : 'DEPARTMENT';
     let incidents: IncidentOrmEntity[];
 
-    if (companyWide) {
+    if (isExecutive) {
       incidents = await this.incidentRepository.find({
         where: { companyId: user.companyId },
       });

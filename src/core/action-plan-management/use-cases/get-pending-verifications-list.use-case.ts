@@ -73,12 +73,10 @@ export class GetPendingVerificationsListUseCase {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
     const isExecutive = roles.includes('EXECUTIVE');
-    const isExecutor = roles.includes('EXECUTOR');
     const isSupervisor = roles.includes('SUPERVISOR');
-    const companyWide = isExecutive || isExecutor;
-    if (!companyWide && !isSupervisor) {
+    if (!isExecutive && !isSupervisor) {
       throw new ForbiddenException(
-        'Only SUPERVISOR, EXECUTIVE and EXECUTOR can list pending verifications',
+        'Only SUPERVISOR and EXECUTIVE can list pending verifications',
       );
     }
 
@@ -92,7 +90,7 @@ export class GetPendingVerificationsListUseCase {
       .andWhere('c.status = :caseStatus', { caseStatus: 'WAITING_VERIFICATION' })
       .andWhere('i.companyId = :companyId', { companyId: user.companyId });
 
-    if (!companyWide) {
+    if (!isExecutive) {
       const eid = user.employeeId?.trim() ?? '';
       qb.andWhere(
         new Brackets((sub) => {

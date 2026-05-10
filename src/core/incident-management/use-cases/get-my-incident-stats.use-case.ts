@@ -97,7 +97,7 @@ export class GetMyIncidentStatsUseCase {
   async execute(): Promise<ManagerIncidentStatsResult> {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
-    const companyWide = roles.includes('EXECUTIVE') || roles.includes('EXECUTOR');
+    const companyWide = roles.includes('EXECUTIVE');
     const isSupervisor = roles.includes('SUPERVISOR');
     const isManager = roles.includes('MANAGER');
 

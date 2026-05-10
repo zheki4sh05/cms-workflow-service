@@ -469,6 +469,40 @@ export class IncidentsByRiskObjectSeverityDto {
   unknown!: number;
 }
 
+export class RuleEffectivenessItemDto {
+  @ApiProperty()
+  ruleId!: string;
+
+  @ApiProperty()
+  ruleName!: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  categoryId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  categoryName!: string | null;
+
+  @ApiProperty({
+    description: 'Кейсы в статусе REJECTED для данного ruleId (по finding)',
+  })
+  rejectedCount!: number;
+
+  @ApiProperty({
+    description: 'Кейсы в статусе CLOSED для данного ruleId (по finding)',
+  })
+  closedCount!: number;
+
+  @ApiProperty({
+    description: 'Поле enabled из CMS Risk GET /api/internal/rules/{id}',
+  })
+  ruleActive!: boolean;
+}
+
+export class RuleEffectivenessResponseDto {
+  @ApiProperty({ type: RuleEffectivenessItemDto, isArray: true })
+  items!: RuleEffectivenessItemDto[];
+}
+
 export class OperationsOverviewResponseDto {
   @ApiProperty({ enum: ['COMPANY', 'DEPARTMENT'] })
   scope!: 'COMPANY' | 'DEPARTMENT';

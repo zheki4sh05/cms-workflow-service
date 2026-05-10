@@ -60,18 +60,16 @@ export class GetProblemAreasUseCase {
     const roles = await this.fetchUserRoles(user.id);
 
     const isExecutive = roles.includes('EXECUTIVE');
-    const isExecutor = roles.includes('EXECUTOR');
     const isSupervisor = roles.includes('SUPERVISOR');
-    const companyWide = isExecutive || isExecutor;
-    if (!companyWide && !isSupervisor) {
+    if (!isExecutive && !isSupervisor) {
       throw new ForbiddenException(
-        'Only SUPERVISOR, EXECUTIVE and EXECUTOR can access problem areas',
+        'Only SUPERVISOR and EXECUTIVE can access problem areas',
       );
     }
 
     let incidents: IncidentOrmEntity[];
 
-    if (companyWide) {
+    if (isExecutive) {
       incidents = await this.incidentRepository.find({
         where: {
           companyId: user.companyId,

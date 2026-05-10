@@ -10,6 +10,7 @@ import { GetMyIncidentStatsUseCase } from '../../core/incident-management/use-ca
 import { GetManagerKpiListUseCase } from '../../core/incident-management/use-cases/get-manager-kpi-list.use-case';
 import { GetProblemAreasUseCase } from '../../core/incident-management/use-cases/get-problem-areas.use-case';
 import { GetOperationsOverviewUseCase } from '../../core/incident-management/use-cases/get-operations-overview.use-case';
+import { GetRuleEffectivenessUseCase } from '../../core/incident-management/use-cases/get-rule-effectiveness.use-case';
 import {
   AssignIncidentCaseResponseDto,
   IncidentManagerStatsResponseDto,
@@ -20,6 +21,7 @@ import {
   MyIncidentResponseDto,
   ProblemAreasResponseDto,
   OperationsOverviewResponseDto,
+  RuleEffectivenessResponseDto,
 } from './dto/incident-response.dto';
 
 @Controller('api/incidents')
@@ -34,6 +36,7 @@ export class IncidentController {
     private readonly getManagerKpiListUseCase: GetManagerKpiListUseCase,
     private readonly getProblemAreasUseCase: GetProblemAreasUseCase,
     private readonly getOperationsOverviewUseCase: GetOperationsOverviewUseCase,
+    private readonly getRuleEffectivenessUseCase: GetRuleEffectivenessUseCase,
   ) {}
 
   @Get('my')
@@ -49,7 +52,7 @@ export class IncidentController {
   @Get('my/stats')
   @ApiOperation({
     summary:
-      'Статистика по инцидентам: EXECUTIVE и EXECUTOR — по всей компании; SUPERVISOR — подчинённые отдела (нужен EmployeeId при отсутствии в профиле); MANAGER — свои назначения.',
+      'Статистика по инцидентам: EXECUTIVE — по всей компании; SUPERVISOR — подчинённые отдела (нужен EmployeeId при отсутствии в профиле); MANAGER — свои назначения.',
   })
   @ApiOkResponse({ type: IncidentManagerStatsResponseDto })
   getMyStats(): Promise<IncidentManagerStatsResponseDto> {
@@ -59,7 +62,7 @@ export class IncidentController {
   @Get('kpi/managers')
   @ApiOperation({
     summary:
-      'KPI по сотрудникам (менеджерам) с назначениями: SUPERVISOR — подчинённые отдела руководителя; EXECUTIVE и EXECUTOR — все назначенные по компании. Требуется заголовок EmployeeId для SUPERVISOR, если нет employeeId в профиле.',
+      'KPI по сотрудникам (менеджерам) с назначениями: SUPERVISOR — подчинённые отдела руководителя; EXECUTIVE — все назначенные по компании. Требуется заголовок EmployeeId для SUPERVISOR, если нет employeeId в профиле.',
   })
   @ApiOkResponse({ type: ManagerKpiListResponseDto })
   getManagerKpi(): Promise<ManagerKpiListResponseDto> {
@@ -69,17 +72,27 @@ export class IncidentController {
   @Get('overview')
   @ApiOperation({
     summary:
-      'Операционная сводка: конвейер инцидентов и кейсов, «залипшие» нерешённые (>14 дней с первого обнаружения), топ объектов риска (мониторинг), серьёзность по объектам риска, просрочки в планах. EXECUTIVE и EXECUTOR — компания; SUPERVISOR — отдел (подчинённые).',
+      'Операционная сводка: конвейер инцидентов и кейсов, «залипшие» нерешённые (>14 дней с первого обнаружения), топ объектов риска (мониторинг), серьёзность по объектам риска, просрочки в планах. EXECUTIVE — компания; SUPERVISOR — отдел (подчинённые).',
   })
   @ApiOkResponse({ type: OperationsOverviewResponseDto })
   getOperationsOverview(): Promise<OperationsOverviewResponseDto> {
     return this.getOperationsOverviewUseCase.execute() as Promise<OperationsOverviewResponseDto>;
   }
 
+  @Get('rule-effectiveness')
+  @ApiOperation({
+    summary:
+      'Эффективность правил: агрегация кейсов REJECTED и CLOSED по ruleId из cases→findings. EXECUTIVE — по всей компании; SUPERVISOR — кейсы подчинённых отдела. Имена правил и категорий из CMS Risk.',
+  })
+  @ApiOkResponse({ type: RuleEffectivenessResponseDto })
+  getRuleEffectiveness(): Promise<RuleEffectivenessResponseDto> {
+    return this.getRuleEffectivenessUseCase.execute() as Promise<RuleEffectivenessResponseDto>;
+  }
+
   @Get('reports')
   @ApiOperation({
     summary:
-      'Постраничный список полных отчетов по инцидентам для ролей SUPERVISOR, EXECUTIVE и EXECUTOR (EXECUTIVE/EXECUTOR — по компании).',
+      'Постраничный список полных отчетов по инцидентам для ролей SUPERVISOR и EXECUTIVE (EXECUTIVE — по компании).',
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
@@ -108,7 +121,7 @@ export class IncidentController {
   @Get('problem-areas')
   @ApiOperation({
     summary:
-      'Проблемные зоны: инциденты с одинаковым documentId, у которых за выбранный календарный месяц (UTC) более одного срабатывания. EXECUTIVE и EXECUTOR — компания; SUPERVISOR — как отчёты (подчинённые отдела). Полные отчёты как по GET /:incidentId/report.',
+      'Проблемные зоны: инциденты с одинаковым documentId, у которых за выбранный календарный месяц (UTC) более одного срабатывания. EXECUTIVE — компания; SUPERVISOR — как отчёты (подчинённые отдела). Полные отчёты как по GET /:incidentId/report.',
   })
   @ApiQuery({
     name: 'month',
