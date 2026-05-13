@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpLoggingInterceptor } from '../common/http-logging.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IncidentManagementModule } from '../incident-management/incident-management.module';
@@ -73,6 +75,12 @@ loadEnvFile();
     IncidentManagementModule,
     CaseManagementModule,
     ActionPlanManagementModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggingInterceptor,
+    },
   ],
 })
 export class AppModule {}
