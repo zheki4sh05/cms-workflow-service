@@ -7,6 +7,9 @@ export class ActionTaskListItemDto {
   @ApiProperty()
   title!: string;
 
+  @ApiProperty()
+  description!: string;
+
   @ApiProperty({ required: false, nullable: true })
   assigneeId?: string;
 

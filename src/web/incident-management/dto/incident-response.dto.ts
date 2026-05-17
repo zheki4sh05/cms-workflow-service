@@ -26,6 +26,21 @@ export class IncidentResponseDto {
   status!: string;
 }
 
+export class MyIncidentCaseItemDto {
+  @ApiProperty({
+    description: 'userId ответственного за finding (assignedUserId)',
+  })
+  id!: string;
+
+  @ApiProperty({
+    description:
+      'id кейса, если ответственный принял finding в работу; иначе null',
+    required: false,
+    nullable: true,
+  })
+  caseId!: string | null;
+}
+
 export class MyIncidentResponseDto {
   @ApiProperty()
   id!: string;
@@ -71,6 +86,15 @@ export class MyIncidentResponseDto {
     type: [String],
   })
   employees!: string[];
+
+  @ApiProperty({
+    description:
+      'MANAGER: по каждому finding с ответственным — userId и id кейса (null, если не принят в работу)',
+    type: MyIncidentCaseItemDto,
+    isArray: true,
+    required: false,
+  })
+  cases?: MyIncidentCaseItemDto[];
 }
 
 export class IncidentStatsByCategoryDto {

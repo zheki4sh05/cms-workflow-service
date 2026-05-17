@@ -24,6 +24,7 @@ export interface ActionPlanListItemResult {
   tasks: Array<{
     id: string;
     title: string;
+    description: string;
     assigneeId?: string;
     status: string;
     dueAt?: Date;
@@ -182,6 +183,7 @@ export class GetActionPlanListUseCase {
         tasks: (tasksByPlanId.get(plan.id) ?? []).map((task) => ({
           id: task.id,
           title: task.title,
+          description: task.description,
           status: mapTaskListStatus(task),
           dueAt: task.dueDate,
         })),

@@ -17,6 +17,13 @@ import { getOptionalEnvOrDefault } from '../../../web/app/env';
 
 type Severity = 'low' | 'medium' | 'high';
 
+interface MyIncidentCaseItem {
+  /** userId ответственного за finding */
+  id: string;
+  /** id кейса, если принят в работу; иначе null */
+  caseId: string | null;
+}
+
 interface MyIncidentListItem {
   id: string;
   riskObjectId: string;
@@ -30,6 +37,8 @@ interface MyIncidentListItem {
   resolved_date: string | null;
   /** assignedUserId из findings этого инцидента (без null/пустых, порядок — по findings) */
   employees: string[];
+  /** MANAGER: ответственные по findings и связанные кейсы */
+  cases?: MyIncidentCaseItem[];
 }
 
 interface RuleDetailsResponse {
@@ -88,6 +97,7 @@ export class GetMyIncidentListUseCase {
     const user = await this.fetchCurrentUser();
     const roles = await this.fetchUserRoles(user.id);
 
+    let forManagerList = false;
     let assignedUserIds: string[];
 
     if (roles.includes('SUPERVISOR')) {
@@ -102,6 +112,7 @@ export class GetMyIncidentListUseCase {
         return [];
       }
     } else if (roles.includes('MANAGER')) {
+      forManagerList = true;
       assignedUserIds = [user.id, user.employeeId].filter(Boolean);
       if (assignedUserIds.length === 0) {
         return [];
@@ -155,6 +166,14 @@ export class GetMyIncidentListUseCase {
       findings,
       (finding) => finding.incidentId,
     );
+
+    const incidentCases = await this.caseRepository.find({
+      where: { incidentId: In(incidents.map((incident) => incident.id)) },
+    });
+    const casesByIncidentId = this.groupBy(
+      incidentCases,
+      (currentCase) => currentCase.incidentId,
+    );
     const ruleIds = Array.from(
       new Set(
         findings
@@ -193,7 +212,7 @@ export class GetMyIncidentListUseCase {
           riskObject?.severity,
         );
 
-        return {
+        const item: MyIncidentListItem = {
           id: incident.id,
           riskObjectId: incident.riskObjectId,
           riskObjectName: riskObject?.name ?? incident.riskObjectId,
@@ -206,6 +225,15 @@ export class GetMyIncidentListUseCase {
           resolved_date: incident.resolvedDate?.toISOString() ?? null,
           employees: this.collectFindingAssigneeIds(incidentFindings),
         };
+
+        if (forManagerList) {
+          item.cases = this.buildManagerIncidentCases(
+            incidentFindings,
+            casesByIncidentId.get(incident.id) ?? [],
+          );
+        }
+
+        return item;
       }),
     );
   }
@@ -539,6 +567,33 @@ export class GetMyIncidentListUseCase {
 
     const user = (await response.json()) as InternalUserDto;
     return Array.isArray(user.roles) ? user.roles : [];
+  }
+
+  private buildManagerIncidentCases(
+    incidentFindings: FindingOrmEntity[],
+    incidentCases: CaseOrmEntity[],
+  ): MyIncidentCaseItem[] {
+    const result: MyIncidentCaseItem[] = [];
+
+    for (const finding of incidentFindings) {
+      const assigneeId = finding.assignedUserId?.trim();
+      if (!assigneeId) {
+        continue;
+      }
+
+      const matchedCase = incidentCases.find(
+        (currentCase) =>
+          currentCase.findingId === finding.id &&
+          currentCase.assignedUserId?.trim() === assigneeId,
+      );
+
+      result.push({
+        id: assigneeId,
+        caseId: matchedCase?.id ?? null,
+      });
+    }
+
+    return result;
   }
 
   private collectFindingAssigneeIds(

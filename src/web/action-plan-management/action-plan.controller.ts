@@ -1,8 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Header,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -14,6 +17,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiProduces,
@@ -30,6 +34,7 @@ import { ReturnActionPlanForRevisionUseCase } from '../../core/action-plan-manag
 import { AddActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-action-plan-task-evidence.use-case';
 import { GetActionPlanTaskEvidencesUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-task-evidences.use-case';
 import { DownloadActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/download-action-plan-task-evidence.use-case';
+import { DeleteActionPlanTaskUseCase } from '../../core/action-plan-management/use-cases/delete-action-plan-task.use-case';
 import type { UploadedFile as UploadedBinaryFile } from '../../core/case-management/types/uploaded-file.type';
 import { ConfirmActionPlanDto } from './dto/confirm-action-plan.dto';
 import { ReturnActionPlanForRevisionDto } from './dto/return-action-plan-for-revision.dto';
@@ -53,6 +58,7 @@ export class ActionPlanController {
     private readonly addActionPlanTaskEvidenceUseCase: AddActionPlanTaskEvidenceUseCase,
     private readonly getActionPlanTaskEvidencesUseCase: GetActionPlanTaskEvidencesUseCase,
     private readonly downloadActionPlanTaskEvidenceUseCase: DownloadActionPlanTaskEvidenceUseCase,
+    private readonly deleteActionPlanTaskUseCase: DeleteActionPlanTaskUseCase,
   ) {}
 
   @Get()
@@ -130,6 +136,20 @@ export class ActionPlanController {
     return this.returnActionPlanForRevisionUseCase.execute(planId, {
       comments: body.comments ?? body.comment,
     });
+  }
+
+  @Delete(':actionPlanId/tasks/:taskId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary:
+      'Удаляет задачу из плана действий. Доступ: ответственный по кейсу (assignedUserId) или руководитель отдела.',
+  })
+  @ApiNoContentResponse({ description: 'Задача удалена' })
+  async deleteTask(
+    @Param('actionPlanId') actionPlanId: string,
+    @Param('taskId') taskId: string,
+  ): Promise<void> {
+    await this.deleteActionPlanTaskUseCase.execute(actionPlanId, taskId);
   }
 
   @Post(':actionPlanId/tasks/:taskId/evidences')

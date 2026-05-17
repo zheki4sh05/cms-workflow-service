@@ -10,6 +10,7 @@ import { ReturnActionPlanForRevisionUseCase } from '../../core/action-plan-manag
 import { AddActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/add-action-plan-task-evidence.use-case';
 import { GetActionPlanTaskEvidencesUseCase } from '../../core/action-plan-management/use-cases/get-action-plan-task-evidences.use-case';
 import { DownloadActionPlanTaskEvidenceUseCase } from '../../core/action-plan-management/use-cases/download-action-plan-task-evidence.use-case';
+import { DeleteActionPlanTaskUseCase } from '../../core/action-plan-management/use-cases/delete-action-plan-task.use-case';
 import { GetMyTasksUseCase } from '../../core/action-plan-management/use-cases/get-my-tasks.use-case';
 import { GetTaskByIdUseCase } from '../../core/action-plan-management/use-cases/get-task-by-id.use-case';
 import { UpdateTaskUseCase } from '../../core/action-plan-management/use-cases/update-task.use-case';
@@ -60,6 +61,7 @@ import { FindingOrmEntity } from '../../infrastructure/incident-management/persi
     AddActionPlanTaskEvidenceUseCase,
     GetActionPlanTaskEvidencesUseCase,
     DownloadActionPlanTaskEvidenceUseCase,
+    DeleteActionPlanTaskUseCase,
     GetMyTasksUseCase,
     GetMyTaskStatsUseCase,
     GetTaskByIdUseCase,
