@@ -12,7 +12,7 @@ import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
 import { randomUUID } from 'crypto';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ActionPlanOrmEntity } from '../../../infrastructure/action-plan-management/persistence/action-plan.orm-entity';
 import { VerificationOrmEntity } from '../../../infrastructure/action-plan-management/persistence/verification.orm-entity';
 import { CaseOrmEntity } from '../../../infrastructure/case-management/persistence/case.orm-entity';
@@ -41,6 +41,7 @@ export class SubmitActionPlanUseCase {
 
   constructor(
     @Inject(REQUEST) private readonly request: Request,
+    private readonly dataSource: DataSource,
     @InjectRepository(ActionPlanOrmEntity)
     private readonly actionPlanRepository: Repository<ActionPlanOrmEntity>,
     @InjectRepository(CaseOrmEntity)
@@ -80,21 +81,38 @@ export class SubmitActionPlanUseCase {
     const existingVerification = await this.verificationRepository.findOne({
       where: { actionPlanId: actionPlan.id },
     });
-    const verification = this.verificationRepository.create({
-      id: existingVerification?.id ?? randomUUID(),
-      actionPlanId: actionPlan.id,
-      verified: false,
-      assignedUserForVerification: departmentManager.userId,
-      assignedEmployeeForVerification: departmentManager.employeeId,
-      comments: existingVerification?.comments ?? null,
+    const verificationId = existingVerification?.id ?? randomUUID();
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.upsert(
+        VerificationOrmEntity,
+        {
+          id: verificationId,
+          actionPlanId: actionPlan.id,
+          verified: false,
+          assignedUserForVerification: departmentManager.userId,
+          assignedEmployeeForVerification: departmentManager.employeeId,
+          comments: existingVerification?.comments ?? null,
+        },
+        ['actionPlanId'],
+      );
+
+      await manager.update(
+        ActionPlanOrmEntity,
+        { id: actionPlan.id },
+        { showTasks: false },
+      );
+
+      await manager.update(
+        CaseOrmEntity,
+        { id: currentCase.id },
+        { status: 'WAITING_VERIFICATION' },
+      );
     });
-    await this.verificationRepository.save(verification);
 
-    actionPlan.showTasks = false;
-    await this.actionPlanRepository.save(actionPlan);
-
-    currentCase.status = 'WAITING_VERIFICATION';
-    await this.caseRepository.save(currentCase);
+    this.logger.log(
+      `Verification upserted for actionPlanId=${actionPlan.id}, verificationId=${verificationId}`,
+    );
 
     const updatedCase = await this.caseRepository.findOne({
       where: { id: currentCase.id },

@@ -14,6 +14,7 @@ import { CaseCommentOrmEntity } from '../case-management/persistence/case-commen
 import { CaseAttachmentOrmEntity } from '../case-management/persistence/case-attachment.orm-entity';
 import { ActionPlanTaskOrmEntity } from '../action-plan-management/persistence/action-plan-task.orm-entity';
 import { InvestigationOrmEntity } from '../investigation-management/persistence/investigation.orm-entity';
+import { VerificationOrmEntity } from '../action-plan-management/persistence/verification.orm-entity';
 
 loadEnvFile();
 
@@ -34,6 +35,7 @@ export default new DataSource({
     CaseCommentOrmEntity,
     CaseAttachmentOrmEntity,
     InvestigationOrmEntity,
+    VerificationOrmEntity,
   ],
   migrations: ['src/infrastructure/database/migrations/*.ts'],
 });

@@ -1,6 +1,17 @@
-# MinIO: S3 API на хосте — http://localhost:9020, консоль — http://localhost:9001
-# Полный перезапуск: docker compose down && docker compose up -d --force-recreate
-# С удалением данных MinIO: docker compose down -v && docker compose up -d
+# CMS Workflow Service + MinIO
+#
+# Сначала поднимите БД и Kafka (отдельный compose):
+#   docker compose -f docker-compose.infra.yml up -d
+#
+# Затем сервис:
+#   docker compose up -d --build
+#
+# MinIO: S3 API — http://localhost:9020, консоль — http://localhost:9001
+# HTTP API: http://localhost:3000  Swagger: http://localhost:3000/api/docs
+#
+# Сброс данных MinIO: docker compose down -v
+
+name: cms-workflow-service
 
 services:
   minio:
@@ -12,7 +23,7 @@ services:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
     ports:
-      # S3 API: внутри контейнера 9000 → на ПК 9020 (9000 на хосте часто занят Kafka)
+      # S3 API: внутри контейнера 9000 → на хосте 9020 (9000 часто занят Kafka)
       - '9020:9000'
       - '9001:9001'
     volumes:
@@ -23,6 +34,53 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  cms-workflow-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cms-workflow-service
+    restart: unless-stopped
+    depends_on:
+      minio:
+        condition: service_healthy
+    ports:
+      - '${PORT:-3000}:${PORT:-3000}'
+    environment:
+      PORT: ${PORT:-3000}
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-cms_workflow}
+      DB_RUN_MIGRATIONS: ${DB_RUN_MIGRATIONS:-true}
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-false}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-host.docker.internal:9092}
+      KAFKA_CLIENT_ID: ${KAFKA_CLIENT_ID:-cms-workflow-service}
+      KAFKA_INCIDENT_TOPIC: ${KAFKA_INCIDENT_TOPIC:-cms.incident.events}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: 'false'
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-cms-workflow-attachments}
+      OUTBOX_RESOLVER_INTERVAL_MINUTES: ${OUTBOX_RESOLVER_INTERVAL_MINUTES:-1}
+      CMS_AUTH_SERVICE_URL: ${CMS_AUTH_SERVICE_URL:-http://host.docker.internal:9091}
+      CMS_MONITORING_SERVICE_URL: ${CMS_MONITORING_SERVICE_URL:-http://host.docker.internal:9093}
+      CMS_RISK_SERVICE_URL: ${CMS_RISK_SERVICE_URL:-http://host.docker.internal:9094}
+      CMS_COMPANY_INFO_SERVICE_URL: ${CMS_COMPANY_INFO_SERVICE_URL:-http://host.docker.internal:9092}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(`http://127.0.0.1:${process.env.PORT||3000}/`).then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
 volumes:
   minio_data:

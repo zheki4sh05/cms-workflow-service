@@ -552,38 +552,54 @@ USE_CASE_API: list[tuple[str, list[tuple[str, str, str]]]] = [
 ]
 
 
+USE_CASE_FIELD_LABELS = (
+    "Наименование варианта использования",
+    "Запрос",
+    "Описание запроса с параметрами и заголовками",
+    "Исключительные ситуации",
+)
+
+
+def add_use_case_request_table(
+    doc: Document,
+    use_case_name: str,
+    request: str,
+    description: str,
+    exceptions: str,
+) -> None:
+    """Таблица 2×4: подписи в левом столбце, значения справа."""
+    table = doc.add_table(rows=len(USE_CASE_FIELD_LABELS), cols=2)
+    table.style = "Table Grid"
+    values = (use_case_name, request, description, exceptions)
+
+    for i, label in enumerate(USE_CASE_FIELD_LABELS):
+        label_cell = table.rows[i].cells[0]
+        value_cell = table.rows[i].cells[1]
+        label_cell.text = label
+        value_cell.text = values[i]
+        for run in label_cell.paragraphs[0].runs:
+            run.bold = True
+
+    spacer = doc.add_paragraph()
+    spacer.paragraph_format.space_after = Pt(8)
+
+
 def add_use_case_api_section(doc: Document) -> None:
     doc.add_page_break()
     doc.add_heading("Варианты использования: запросы, ответы и исключения", level=1)
     doc.add_paragraph(
         "Описание HTTP-взаимодействий при реализации ключевых сценариев. "
-        "Коды ошибок соответствуют стандартным ответам NestJS (400, 401, 403, 404) "
-        "и текстам исключений в use cases."
+        "Для каждого запроса — таблица: названия полей в левом столбце, значения в правом."
     ).paragraph_format.space_after = Pt(12)
 
     for use_case_name, rows in USE_CASE_API:
         doc.add_heading(use_case_name, level=2)
-        doc.add_paragraph(f"Строк в таблице (без шапки): {len(rows)}")
-
-        table = doc.add_table(rows=1, cols=4)
-        table.style = "Table Grid"
-        headers = (
-            "Наименование варианта использования",
-            "Запрос",
-            "Описание запроса с параметрами и заголовками",
-            "Исключительные ситуации",
-        )
-        for i, text in enumerate(headers):
-            table.rows[0].cells[i].text = text
-            for run in table.rows[0].cells[i].paragraphs[0].runs:
-                run.bold = True
+        doc.add_paragraph(f"Запросов в сценарии: {len(rows)}.")
 
         for request, description, exceptions in rows:
-            cells = table.add_row().cells
-            cells[0].text = use_case_name
-            cells[1].text = request
-            cells[2].text = description
-            cells[3].text = exceptions
+            add_use_case_request_table(
+                doc, use_case_name, request, description, exceptions
+            )
 
         doc.add_paragraph()
 

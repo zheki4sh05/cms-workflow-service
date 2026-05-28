@@ -1,0 +1,145 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.2 Chrome/134.0.6998.205 Electron/35.3.0 Safari/537.36" version="27.0.2">
+  <diagram id="reject-case-algorithm" name="Алгоритм: отклонение кейса">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Отклонение кейса&#xa;(ложноположительный / не требует мероприятий)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="200" y="10" width="700" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="start" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#0097a7;strokeColor=#006064;" parent="1" vertex="1">
+          <mxGeometry x="534" y="70" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_start" value="Начало" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;" parent="1" vertex="1">
+          <mxGeometry x="514" y="45" width="70" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_input" value="Ввод: кейс и комментарий&#xa;с обоснованием отклонения" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="404" y="120" width="290" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dec_checks" value="Условия выполнены?&#xa;(комментарий, кейс в «Расследовании»,&#xa;плана действий ещё нет)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="394" y="200" width="310" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_error" value="Вернуть ошибку&#xa;пользователю" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#c62828;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="40" y="230" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="end_err" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#c62828;strokeColor=#b71c1c;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="125" y="320" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_end_err" value="Конец" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;" parent="1" vertex="1">
+          <mxGeometry x="105" y="355" width="70" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_plan" value="Создать план действий&#xa;с текстом отклонения" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="404" y="340" width="290" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_reject" value="Перевести кейс&#xa;в статус «Отклонён»" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#757575;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="404" y="420" width="290" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dec_single" value="По инциденту&#xa;только этот кейс?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="434" y="500" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_resolved1" value="Инцидент → «Решён»" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00897b;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="404" y="620" width="290" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="dec_assigned" value="Есть другие кейсы&#xa;в статусе «Назначен»?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="720" y="490" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_partly" value="Инцидент →&#xa;«Частично в работе»" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#ef6c00;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="720" y="620" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dec_invest" value="Все остальные кейсы&#xa;в «Расследовании»?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="720" y="710" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_in_progress" value="Инцидент → «В работе»" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="720" y="830" width="240" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_resolved2" value="Инцидент → «Решён»" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00897b;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="980" y="730" width="200" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_save" value="Сохранить инцидент&#xa;и вернуть результат" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="404" y="940" width="290" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="end_ok" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#388e3c;strokeColor=#2e7d32;strokeWidth=3;" parent="1" vertex="1">
+          <mxGeometry x="534" y="1050" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_end_ok" value="Конец" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;" parent="1" vertex="1">
+          <mxGeometry x="514" y="1085" width="70" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="ref" value="Сценарий: отклонение кейса" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="300" y="1120" width="500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Проверки при «нет»: пустой комментарий, кейс не найден,&#xa;неверный статус, план действий уже создан" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#fffde7;strokeColor=#fbc02d;fontSize=10;align=left;spacingLeft=8;" parent="1" vertex="1">
+          <mxGeometry x="40" y="120" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" parent="1" source="start" target="proc_input" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" parent="1" source="proc_input" target="dec_checks" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="нет" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="dec_checks" target="proc_error" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" parent="1" source="proc_error" target="end_err" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="да" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="dec_checks" target="proc_plan" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" parent="1" source="proc_plan" target="proc_reject" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" parent="1" source="proc_reject" target="dec_single" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="да" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="dec_single" target="proc_resolved1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="нет" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="dec_single" target="dec_assigned" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="да" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="dec_assigned" target="proc_partly" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="нет" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="dec_assigned" target="dec_invest" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="да" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="dec_invest" target="proc_in_progress" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="нет" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="dec_invest" target="proc_resolved2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="proc_resolved1" target="proc_save" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="proc_partly" target="proc_save" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="645" />
+              <mxPoint x="360" y="973" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="proc_in_progress" target="proc_save" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="852" />
+              <mxPoint x="360" y="965" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="proc_resolved2" target="proc_save" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="752" />
+              <mxPoint x="360" y="978" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" parent="1" source="proc_save" target="end_ok" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
