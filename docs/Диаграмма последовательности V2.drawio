@@ -1,0 +1,353 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.2 Chrome/134.0.6998.205 Electron/35.3.0 Safari/537.36" version="27.0.2">
+  <diagram name="Sequence Diagram - Risk Detection to Resolution" id="SequenceDiagram">
+    <mxGraphModel dx="2253" dy="1327" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Диаграмма последовательности: Обнаружение и решение комплаенс-риска" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="400" y="20" width="1000" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="scheduler" value="Scheduler" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="80" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="erp" value="ERP/CRM/1C" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="220" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="eimDWDlUnG7dWseVmCec-3" value="" style="endArrow=classic;html=1;rounded=0;fontSize=14;" parent="erp" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="189.5" y="442" as="sourcePoint" />
+            <mxPoint x="889.5" y="442" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="monitoring" value="cms-monitoring-service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="360" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="rules" value="cms-risk-service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="500" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="eimDWDlUnG7dWseVmCec-8" value="7:&amp;nbsp;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212));&quot;&gt;consume(MonitoringResult)&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;@KafkaListener&lt;/span&gt;" style="endArrow=none;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.27;entryX=0;entryY=0.27;startArrow=classicThin;startFill=1;fontSize=14;" parent="rules" edge="1">
+          <mxGeometry x="-0.2494" y="20" relative="1" as="geometry">
+            <mxPoint x="50.26999999999998" y="480" as="sourcePoint" />
+            <mxPoint x="609.7351162790699" y="480" as="targetPoint" />
+            <mxPoint y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="workflow" value="cms-workflow-service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="640" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="notification" value="cmsp-ws-service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="780" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="kafka" value="Kafka" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="920" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="database" value="PostgreSQL" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="1060" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="manager" value="Менеджер" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="1200" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="supervisor" value="Руководитель" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="1340" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="frontend" value="Frontend" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="1480" y="80" width="100" height="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="phase1" value="ФАЗА 1: ОБНАРУЖЕНИЕ РИСКА" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="180" width="1520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="msg1" value="1: trigger batch job (cron)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.1;entryX=0;entryY=0.1;fontSize=14;" parent="1" source="scheduler" target="monitoring" edge="1">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint x="180" y="240" as="sourcePoint" />
+            <mxPoint x="340" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg2" value="2: fetch procurement events&lt;br&gt;(REST/ODATA)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=0.5;exitY=0.15;fontSize=14;" parent="1" source="monitoring" target="erp" edge="1">
+          <mxGeometry x="0.8667" y="-40" relative="1" as="geometry">
+            <mxPoint x="410" y="280" as="sourcePoint" />
+            <mxPoint x="270" y="280" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="410" y="350" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg3" value="3: return List" style="endArrow=open;endFill=0;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;dashed=1;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.4316" relative="1" as="geometry">
+            <mxPoint x="270.2894736842105" y="389" as="sourcePoint" />
+            <mxPoint x="410" y="389" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="410" y="389" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg4" value="4: save(ProcesedEvent)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.2;entryX=0;entryY=0.2;fontSize=14;" parent="1" source="monitoring" target="database" edge="1">
+          <mxGeometry x="0.0008" y="20" relative="1" as="geometry">
+            <mxPoint x="460" y="360" as="sourcePoint" />
+            <mxPoint x="1060" y="360" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg5" value="5: eventId" style="endArrow=open;endFill=0;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;dashed=1;exitX=0;exitY=0.22;entryX=1;entryY=0.22;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.0291" y="4" relative="1" as="geometry">
+            <mxPoint x="1109.5" y="486" as="sourcePoint" />
+            <mxPoint x="410.12264150943383" y="486" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg7" value="8: findById(riskObjectId)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.27;entryX=0;entryY=0.27;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.2494" y="20" relative="1" as="geometry">
+            <mxPoint x="550.0348837209301" y="599.5" as="sourcePoint" />
+            <mxPoint x="1109.5" y="599.5" as="targetPoint" />
+            <mxPoint y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg8" value="9: Rule (expression, type)" style="endArrow=open;endFill=0;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;dashed=1;exitX=0;exitY=0.29;entryX=1;entryY=0.29;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="0.2494" relative="1" as="geometry">
+            <mxPoint x="1114.5" y="628.4999999999999" as="sourcePoint" />
+            <mxPoint x="555.0348837209301" y="628.4999999999999" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="activation9" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="545" y="590" width="10" height="123" as="geometry" />
+        </mxCell>
+        <mxCell id="msg9" value="10: evaluate via&lt;br&gt;DroolsEvaluator" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0;entryX=0.841;entryY=0.767;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.318" relative="1" as="geometry">
+            <mxPoint x="555.02" y="640.9999999999999" as="sourcePoint" />
+            <mxPoint x="553.4100000000001" y="701.3900000000001" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="590" y="641" />
+              <mxPoint x="590" y="701" />
+              <mxPoint x="553" y="701" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg11" value="11: save(RuleEvaluation)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.35;entryX=0;entryY=0.35;fontSize=14;" parent="1" source="monitoring" target="database" edge="1">
+          <mxGeometry x="0.0009" y="28" relative="1" as="geometry">
+            <mxPoint x="460" y="650" as="sourcePoint" />
+            <mxPoint x="1060" y="650" as="targetPoint" />
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg12" value="12: save(IncidentOutbox)&#xa;[status=PENDING]" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.37;entryX=0;entryY=0.37;fontSize=14;" parent="1" source="monitoring" target="database" edge="1">
+          <mxGeometry x="0.0006" y="35" relative="1" as="geometry">
+            <mxPoint x="460" y="690" as="sourcePoint" />
+            <mxPoint x="1060" y="690" as="targetPoint" />
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg14" value="" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.42;entryX=0;entryY=0.42;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="0.05" y="-10" relative="1" as="geometry">
+            <mxPoint x="409.75925925925935" y="857" as="sourcePoint" />
+            <mxPoint x="1109.5" y="857" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="phase2" value="ФАЗА 2: ИНИЦИАЦИЯ WORKFLOW" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="830" width="1520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="msg15" value="15: consume(IncidentRaised)&#xa;@KafkaListener" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.46;entryX=0;entryY=0.46;fontSize=14;" parent="1" source="kafka" target="workflow" edge="1">
+          <mxGeometry x="0.4972" y="-41" relative="1" as="geometry">
+            <mxPoint x="1020" y="890" as="sourcePoint" />
+            <mxPoint x="640" y="890" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg16" value="16: save(Incident)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.48;entryX=0;entryY=0.48;fontSize=14;" parent="1" source="workflow" target="database" edge="1">
+          <mxGeometry x="0.0487" y="28" relative="1" as="geometry">
+            <mxPoint x="740" y="930" as="sourcePoint" />
+            <mxPoint x="1060" y="930" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg17" value="17: save(Case)&#xa;[status=OPEN]" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=14;" parent="1" source="workflow" target="database" edge="1">
+          <mxGeometry x="0.0014" y="35" relative="1" as="geometry">
+            <mxPoint x="740" y="970" as="sourcePoint" />
+            <mxPoint x="1060" y="970" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg18" value="18: save(CaseIncidentLink)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.52;entryX=0;entryY=0.52;fontSize=14;" parent="1" source="workflow" target="database" edge="1">
+          <mxGeometry x="0.0009" y="22" relative="1" as="geometry">
+            <mxPoint x="740" y="1010" as="sourcePoint" />
+            <mxPoint x="1060" y="1010" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg19" value="19: save(DomainEventOutbox)&#xa;[CaseClosed]" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.54;entryX=0;entryY=0.54;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="0.0486" y="40" relative="1" as="geometry">
+            <mxPoint x="690.0999999999999" y="1080" as="sourcePoint" />
+            <mxPoint x="1109.5" y="1080" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg20" value="20: publish(IncidentAssigned)&#xa;topic: notifications" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.56;entryX=0;entryY=0.56;fontSize=14;" parent="1" source="workflow" target="kafka" edge="1">
+          <mxGeometry x="0.0013" y="36" relative="1" as="geometry">
+            <mxPoint x="740" y="1090" as="sourcePoint" />
+            <mxPoint x="920" y="1090" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg21" value="21: consume(IncidentAssigned)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.58;entryX=0;entryY=0.58;fontSize=14;" parent="1" source="kafka" target="notification" edge="1">
+          <mxGeometry x="0.8507" y="-23" relative="1" as="geometry">
+            <mxPoint x="1020" y="1130" as="sourcePoint" />
+            <mxPoint x="780" y="1130" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg22" value="22: findByTypeAndChannel&#xa;(INCIDENT_RAISED, EMAIL)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.6;entryX=0;entryY=0.6;fontSize=14;" parent="1" source="notification" target="database" edge="1">
+          <mxGeometry x="-0.5712" y="40" relative="1" as="geometry">
+            <mxPoint x="880" y="1170" as="sourcePoint" />
+            <mxPoint x="1060" y="1170" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg23" value="23: Template (subject, bodyHtml)" style="endArrow=open;endFill=0;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;dashed=1;exitX=0;exitY=0.62;entryX=1;entryY=0.62;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="0.6425" y="1" relative="1" as="geometry">
+            <mxPoint x="1109.5" y="1219" as="sourcePoint" />
+            <mxPoint x="830.0555555555557" y="1219" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="activation24" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="825" y="1240" width="10" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="msg24" value="24: send via&#xa;EmailChannel" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0;entryX=0.917;entryY=0.603;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=14;" parent="1" source="activation24" target="activation24" edge="1">
+          <mxGeometry x="-0.3" y="10" relative="1" as="geometry">
+            <mxPoint x="835" y="1240" as="sourcePoint" />
+            <mxPoint x="895" y="1270" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="870" y="1240" />
+              <mxPoint x="870" y="1270" />
+            </Array>
+            <mxPoint x="-10" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg25" value="25: save(DeliveryLog)&#xa;[status=SENT]" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.66;entryX=0;entryY=0.66;fontSize=14;" parent="1" source="notification" target="database" edge="1">
+          <mxGeometry x="-0.1415" y="41" relative="1" as="geometry">
+            <mxPoint x="880" y="1320" as="sourcePoint" />
+            <mxPoint x="1060" y="1320" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg26" value="26: email notification&#xa;[assigned to case]" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.68;entryX=0;entryY=0.68;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.1896" y="34" relative="1" as="geometry">
+            <mxPoint x="830.0348837209301" y="1344" as="sourcePoint" />
+            <mxPoint x="1249.5" y="1344" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="phase3" value="ФАЗА 3: РАССЛЕДОВАНИЕ И КОРРЕКТИРУЮЩИЕ МЕРОПРИЯТИЯ" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="1376" width="1520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="msg27" value="27: open Dashboard" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.72;entryX=0;entryY=0.72;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.2846" y="22" relative="1" as="geometry">
+            <mxPoint x="1249.8548387096776" y="1367" as="sourcePoint" />
+            <mxPoint x="1529.5" y="1367" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg28" value="28: GET /api/cases?ownerId=X&#xa;[REST]" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=0;exitY=0.74;entryX=1;entryY=0.74;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.0007" y="-39" relative="1" as="geometry">
+            <mxPoint x="1529.5" y="1443" as="sourcePoint" />
+            <mxPoint x="689.9285714285713" y="1443" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg29" value="29: findByOwnerId(X)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.76;entryX=0;entryY=0.76;fontSize=14;" parent="1" source="workflow" target="database" edge="1">
+          <mxGeometry x="-0.0944" y="26" relative="1" as="geometry">
+            <mxPoint x="740" y="1560" as="sourcePoint" />
+            <mxPoint x="1060" y="1560" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg30" value="30: List" style="endArrow=open;endFill=0;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;dashed=1;exitX=0;exitY=0.78;entryX=1;entryY=0.78;fontSize=14;" parent="1" source="database" target="workflow" edge="1">
+          <mxGeometry x="-0.001" y="-3" relative="1" as="geometry">
+            <mxPoint x="1060" y="1600" as="sourcePoint" />
+            <mxPoint x="740" y="1600" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg31" value="31: return List" style="endArrow=open;endFill=0;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;dashed=1;exitX=1;exitY=0.8;entryX=0;entryY=0.8;fontSize=14;" parent="1" source="workflow" target="frontend" edge="1">
+          <mxGeometry x="0.0484" relative="1" as="geometry">
+            <mxPoint x="740" y="1640" as="sourcePoint" />
+            <mxPoint x="1480" y="1640" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg32" value="32: create Action Plan" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.82;entryX=0;entryY=0.82;fontSize=14;" parent="1" source="manager" target="frontend" edge="1">
+          <mxGeometry x="-0.2123" y="27" relative="1" as="geometry">
+            <mxPoint x="1300" y="1680" as="sourcePoint" />
+            <mxPoint x="1480" y="1680" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg33" value="33: POST /api/action-plans&#xa;{caseId, items[]}" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=0;exitY=0.84;entryX=1;entryY=0.84;fontSize=14;" parent="1" source="frontend" target="workflow" edge="1">
+          <mxGeometry x="0.1655" y="-34" relative="1" as="geometry">
+            <mxPoint x="1480" y="1720" as="sourcePoint" />
+            <mxPoint x="740" y="1720" as="targetPoint" />
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg34" value="34: save(ActionPlan, ActionItems)" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.86;entryX=0;entryY=0.86;fontSize=14;" parent="1" source="workflow" target="database" edge="1">
+          <mxGeometry x="0.0018" y="21" relative="1" as="geometry">
+            <mxPoint x="740" y="1760" as="sourcePoint" />
+            <mxPoint x="1060" y="1760" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="phase4" value="ФАЗА 4: ВЕРИФИКАЦИЯ И ЗАКРЫТИЕ" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="1810" width="1520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="msg35" value="35: verify Action Plan" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=0;exitY=0.9;entryX=1;entryY=0.9;fontSize=14;" parent="1" source="supervisor" target="frontend" edge="1">
+          <mxGeometry x="-0.5658" y="25" relative="1" as="geometry">
+            <mxPoint x="1340" y="1870" as="sourcePoint" />
+            <mxPoint x="1580" y="1870" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg36" value="36: PUT /api/action-plans/{id}/verify" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=0;exitY=0.92;entryX=1;entryY=0.92;fontSize=14;" parent="1" source="frontend" target="workflow" edge="1">
+          <mxGeometry x="-0.0483" y="-22" relative="1" as="geometry">
+            <mxPoint x="1480" y="1910" as="sourcePoint" />
+            <mxPoint x="740" y="1910" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg37" value="&lt;font&gt;37: update Case&lt;br&gt;[status=CLOSED]&lt;/font&gt;" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.94;entryX=0;entryY=0.94;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.0929" y="29" relative="1" as="geometry">
+            <mxPoint x="689.5" y="1869" as="sourcePoint" />
+            <mxPoint x="1109.5" y="1869" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg38" value="38: publish(CaseClosed)&#xa;topic: notifications" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.96;entryX=0;entryY=0.96;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.1393" y="36" relative="1" as="geometry">
+            <mxPoint x="689.5" y="1906" as="sourcePoint" />
+            <mxPoint x="969.5" y="1906" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="msg39" value="39: send closure notification" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=0;exitY=0.98;entryX=1;entryY=0.98;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="0.85" y="-21" relative="1" as="geometry">
+            <mxPoint x="969.5" y="1931" as="sourcePoint" />
+            <mxPoint x="829.5" y="1931" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w51hYwyHYTgKKyg6sEda-1" value="14: sentToKafka(event), update status=SENT" style="endArrow=block;endFill=1;html=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=top;exitX=1;exitY=0.37;entryX=0;entryY=0.37;fontSize=14;" parent="1" edge="1">
+          <mxGeometry x="-0.0571" y="26" relative="1" as="geometry">
+            <mxPoint x="411" y="806" as="sourcePoint" />
+            <mxPoint x="1111" y="806" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eimDWDlUnG7dWseVmCec-6" value="6:&amp;nbsp;&lt;span style=&quot;text-align: left; background-color: rgb(255, 255, 255);&quot;&gt;sentToKafka(monitoringEntity)&lt;/span&gt;&amp;nbsp;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="595" y="498" width="230" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
